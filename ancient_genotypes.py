@@ -10,103 +10,6 @@ from scipy.sparse.linalg import expm_multiply as expma
 class FreqError(Exception):
 	pass
 
-def ancient_sample(num_modern=1000,anc_time=200,Ne=10000,mu=1.25e-8,length=1000,num_rep=1000, coverage=False):
-	samples = [msp.Sample(population=0,time=0)]*num_modern
-	samples.extend([msp.Sample(population=0,time=anc_time)]*2)
-	sims = msp.simulate(samples=samples,Ne=Ne,mutation_rate=mu,length=length,num_replicates=num_rep)
-	freq = []
-	anc = []
-	for sim in sims:
-		for position, variant in sim.variants():
-			var_array = map(int,list(variant))
-			cur_freq = sum(var_array[:-2])/float(num_modern)
-			if cur_freq == 0 or cur_freq == 1: continue
-			freq.append(cur_freq)
-			if not coverage:
-				cur_site = np.array([0,0,0])
-				cur_site[sum(var_array[-2:])]=1
-				anc.append(cur_site)
-			else:
-				num_reads = st.poisson.rvs(coverage)
-				reads = np.random.choice(var_array[-2:],size=num_reads, replace=True)
-				GL = st.binom.pmf(sum(reads),num_reads,[0,.5,1])
-				GL = GL/sum(GL)
-				anc.append(GL)
-	return np.array(freq), anc
-
-def ancient_sample_split(num_modern=1000,anc_time=200,split_time=400,Ne0=10000,Ne1=10000,mu=1.25e-8,length=1000,num_rep=1000, coverage=False):
-	samples = [msp.Sample(population=0,time=0)]*num_modern
-	samples.extend([msp.Sample(population=1,time=anc_time)]*2)
-	pop_config = [msp.PopulationConfiguration(initial_size=Ne0),msp.PopulationConfiguration(initial_size=Ne1)]
-	divergence = [msp.MassMigration(time=split_time,source=1,destination=0,proportion=1.0)]
-	sims = msp.simulate(samples=samples,Ne=Ne0,population_configurations=pop_config,demographic_events=divergence,mutation_rate=mu,length=length,num_replicates=num_rep)
-	freq = []
-	anc = []
-	for sim in sims:
-		for position, variant in sim.variants():
-			var_array = map(int,list(variant))
-			cur_freq = sum(var_array[:-2])/float(num_modern)
-			if cur_freq == 0 or cur_freq == 1: continue
-			if not coverage:
-				cur_site = np.array([0,0,0])
-				cur_site[sum(var_array[-2:])]=1
-				anc.append(cur_site)
-			else:
-				num_reads = st.poisson.rvs(coverage)
-				reads = np.random.choice(var_array[-2:],size=num_reads, replace=True)
-				GL = st.binom.pmf(sum(reads),num_reads,[0,.5,1])
-				GL = GL/sum(GL)
-				anc.append(GL)
-	return np.array(freq), anc
-
-
-def ancient_sample_mix(num_modern=1000,anc_pop = 0, anc_time=200,mix_time=300,split_time=400,f=0.0,Ne0=10000,Ne1=10000,mu=1.25e-8,length=1000,num_rep=1000,coverage=False):
-	if mix_time > split_time:
-		print "mixture occurs more anciently than population split!"
-		return None
-	if f < 0 or f > 1:
-		print "Admixture fraction is not in [0,1]"
-		return None
-	samples = [msp.Sample(population=0,time=0)]*num_modern
-	samples.extend([msp.Sample(population=anc_pop,time=anc_time)]*2)
-	pop_config = [msp.PopulationConfiguration(initial_size=Ne0),msp.PopulationConfiguration(initial_size=Ne1)]
-	divergence = [msp.MassMigration(time=mix_time,source=0,destination=1,proportion = f),
-			msp.MassMigration(time=split_time,source=1,destination=0,proportion=1.0)]
-	sims = msp.simulate(samples=samples,Ne=Ne0,population_configurations=pop_config,demographic_events=divergence,mutation_rate=mu,length=length,num_replicates=num_rep)
-	freq = []
-	anc = []
-	for sim in sims:
-		for position, variant in sim.variants():
-			var_array = map(int,list(variant))
-			cur_freq = sum(var_array[:-2])/float(num_modern)
-			if cur_freq == 0 or cur_freq == 1: continue
-			freq.append(cur_freq)
-			if not coverage:
-				cur_site = np.array([0,0,0])
-				cur_site[sum(var_array[-2:])]=1
-				if len(cur_site) > 3:
-					print var_array[-2:]
-					print cur_site
-					raw_input()
-				anc.append(cur_site)
-			else:
-				num_reads = st.poisson.rvs(coverage)
-				reads = np.random.choice(var_array[-2:],size=num_reads, replace=True)
-				derived_reads = sum(reads)
-				#if derived_reads == 0: 
-				#	GL = np.array([1,0,0]) #TODO: Fix hack. Avoids infinities by assuming sites with no derived reads are ancestral 
-				#elif derived_reads == num_reads:
-				#	GL = np.array([0,0,1]) #TODO: Fix this hack. AVoids infinities by assuming sites with all derived reads are derived
-				#else:
-				#	GL = st.beta.pdf([0,.5,1],.5+derived_reads,.5+num_reads-derived_reads)
-				#GL = GL/sum(GL)
-				GL = st.binom.pmf(derived_reads,num_reads,[0,.5,1])
-				anc.append(GL)
-			#print var_array[-2:]
-			#print anc
-			#raw_input()
-	return np.array(freq), anc
-
 def ancient_sample_mix_multiple(num_modern=1000,anc_pop = 0, anc_num = 1, anc_time=200,mix_time=300,split_time=400,f=0.0,Ne0=10000,Ne1=10000,mu=1.25e-8,length=1000,num_rep=1000,coverage=False):
 	if mix_time > split_time:
 		print "mixture occurs more anciently than population split!"
@@ -121,51 +24,71 @@ def ancient_sample_mix_multiple(num_modern=1000,anc_pop = 0, anc_num = 1, anc_ti
 			msp.MassMigration(time=split_time,source=1,destination=0,proportion=1.0)]
 	sims = msp.simulate(samples=samples,Ne=Ne0,population_configurations=pop_config,demographic_events=divergence,mutation_rate=mu,length=length,num_replicates=num_rep)
 	freq = []
-	anc = []
+	reads = []
+	GT = []
+	sim_num = 0
 	for sim in sims:
 		for position, variant in sim.variants():
 			var_array = map(int,list(variant))
 			cur_freq = sum(var_array[:-(2*anc_num)])/float(num_modern)
 			if cur_freq == 0 or cur_freq == 1: continue
 			freq.append(cur_freq)
-			if not coverage:
-				cur_site = np.array([0,0,0])
-				cur_site[sum(var_array[-2:])]=1
-				if len(cur_site) > 3:
-					print var_array[-2:]
-					print cur_site
-					raw_input()
-				anc.append(cur_site)
-			else:
-				for i in range(anc_num):
+			reads.append([])
+			GT.append([])
+			for i in range(anc_num):
+				if i == 0: cur_GT = var_array[-2:]
+				else: cur_GT = var_array[-(2*(i+1)):-(2*i)]
+				cur_GT = sum(cur_GT)
+				GT[-1].append(cur_GT)
+				reads[-1].append([None,None])
+				if coverage:
 					num_reads = st.poisson.rvs(coverage)
-					if i == 0: cur_GT = var_array[-2:]
-					else: cur_GT = var_array[-(2*(i+1)):-(2*i)],
-					reads = np.random.choice(cur_GT,size=num_reads, replace=True)
-					derived_reads = sum(reads)
-					anc.append((num_reads-derived_reads,derived_reads))
-			#print var_array[-2:]
-			#print anc
-			#raw_input()
-	return np.array(freq), anc
+					derived_reads = st.binom.rvs(num_reads, cur_GT/2.)
+					reads[-1][-1] = (num_reads-derived_reads,derived_reads)
+	return np.array(freq), GT, reads
 
-def get_het_prob(freq,anc):
-	anc_dict = {}
+def get_het_prob(freq,GT):
+	anc_dict_list = []
+	num_ind = len(GT[0])
+	for ind in range(num_ind):
+		anc_dict_list.append({})
 	for i in range(len(freq)):
-		if freq[i] in anc_dict:
-			anc_dict[freq[i]] += anc[i]
-		else:
-			anc_dict[freq[i]] = np.array([0.0,0.0,0.0])
-			anc_dict[freq[i]] += anc[i]
+		for ind in range(num_ind):
+			if freq[i] in anc_dict_list[ind]:
+				anc_dict_list[ind][freq[i]][GT[i][ind]] += 1.0
+			else:
+				anc_dict_list[ind][freq[i]] = np.array([0.0,0.0,0.0])
+				anc_dict_list[ind][freq[i]][GT[i][ind]] += 1.0
 	unique_freqs = sorted(np.unique(freq))
 	pHet = []
-	for i in range(len(unique_freqs)):
-		cur_anc = anc_dict[unique_freqs[i]]
-		try:
-			pHet.append(cur_anc[1]/(cur_anc[1]+cur_anc[2]))
-		except ZeroDivisionError:
-			pHet.append(None)
-	return np.array(unique_freqs), np.array(pHet), anc_dict
+	for ind in range(num_ind):
+		pHet.append([])
+		for i in range(len(unique_freqs)):
+			cur_anc = anc_dict_list[ind][unique_freqs[i]]
+			try:
+				pHet[-1].append(cur_anc[1]/(cur_anc[1]+cur_anc[2]))
+			except ZeroDivisionError:
+				pHet[-1].append(None)
+	return np.array(unique_freqs), np.array(pHet), anc_dict_list
+
+
+#read_dict is a list of arrays, sorted by freq
+##the first level corresponds to the freqs in freq
+##within each frequency, there are arrays of reads that can be passed to compute_read_like
+def get_read_dict(freq,reads):
+	read_dict = {}
+	num_ind = len(reads[0])
+	for i in range(len(freq)):
+		if freq[i] in read_dict:
+			read_dict[freq[i]].append(np.array(reads[i]))
+		else:
+			read_dict[freq[i]] = []
+			read_dict[freq[i]].append(np.array(reads[i]))
+	freqs = sorted(read_dict)
+	read_list = []
+	for freq in freqs:
+		read_list.append(read_dict[freq])
+	return freqs, read_list
 
 def expected_het_anc(x0,t):
 	return 1.0/(3.0/2.0+(2*x0-1)/(1+np.exp(2*t)-2*x0))
@@ -343,7 +266,7 @@ def compute_genotype_sampling_probs(sampling_prob, GTs):
 #reads is a list of arrays, sorted by freq
 ##the first level corresponds to the freqs in freq
 ##within each frequency, there are arrays of reads that can be passed to compute_read_like
-def compute_GT_like(reads,freq,t1,t2):
+def compute_GT_like(reads,freq,t1,t2,detail=False):
 	if reads[0][0].ndim == 1:
 		n_diploid = 1
 	else:
@@ -359,5 +282,7 @@ def compute_GT_like(reads,freq,t1,t2):
 			read_like = compute_read_like(reads[i][j],GTs)
 			cur_prob = sum(read_like*GT_prob)
 			per_site_like.append(cur_prob)	
-	return np.log(per_site_like)
+	LL = np.log(per_site_like)
+	if detail: print t1, t2, -sum(LL)
+	return LL
 
