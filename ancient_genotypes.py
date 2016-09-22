@@ -241,6 +241,41 @@ def compute_sampling_probs(Ey):
 			probs[-1].append(cur_prob)
 	return np.array(probs)
 
+def get_bounds_reads(reads):
+	cur_max_a = 0
+	cur_max_d = 0
+	cur_min_a = np.inf
+	cur_min_d = np.inf
+	for i in range(len(reads)):
+		for j in range(len(reads[i])):
+			test_min_a = min(reads[i][j][:,0])
+			test_max_a = max(reads[i][j][:,0])
+			test_min_d = min(reads[i][j][:,1])
+			test_max_d = max(reads[i][j][:,1])
+			if test_min_a < cur_min_a: cur_min_a = test_min_a
+			if test_max_a > cur_max_a: cur_max_a = test_max_a
+			if test_min_d < cur_min_d: cur_min_d = test_min_d
+			if test_max_d > cur_max_d: cur_max_d = test_max_d
+	return cur_min_a, cur_max_a, cur_min_d, cur_max_d
+
+def precompute_read_like(min_a,max_a,min_d,max_d):
+	read_like = {}
+	for a in range(min_a,max_a+1):
+		for d in range(min_d,max_d+1):
+			read_like[(a,d)] = st.binom.pmf(d,a+d,[0.,.5,1.])
+	return read_like	
+
+def precompute_all_read_like(reads):
+	read_like = []
+	for i in range(len(reads)):
+		read_like.append([])
+		for j in range(len(reads[i])):
+			der = reads[i][j][:,1]
+			total = reads[i][j][:,0]+reads[i][j][:,1]
+			cur_like = np.vstack((st.binom.pmf(der,total,0.),st.binom.pmf(der,total,.5),st.binom.pmf(der,total,1.)))
+			read_like[-1].append(np.transpose(cur_like))
+	return read_like
+
 #NB: Takes the WHOLE matrix of genotypes
 #reads is an array where each row is a sample, reads[:,0] is ancestral reads, reads[:,1] is derived reads at that site
 def compute_read_like(reads,GTs):
@@ -286,3 +321,62 @@ def compute_GT_like(reads,freq,t1,t2,detail=False):
 	if detail: print t1, t2, -sum(LL)
 	return LL
 
+#This expects a precomputed dictionary of genotype likelihoods that are observed in the data, using precompute_read_like
+#TODO: If implementing with error, will need to move the precompute stage *inside* the likelihood. Should still be better than old way
+def compute_GT_like_precompute_dict(reads,freq,t1,t2,read_like,detail=False):
+	if reads[0][0].ndim == 1:
+		n_diploid = 1
+	else:
+		n_diploid = len(reads[0][0])
+	n_haploid = 2*n_diploid
+	GTs = generate_genotypes(n_diploid)	
+	Ey = compute_Ey(freq,n_haploid,t1,t2)
+	sampling_prob = compute_sampling_probs(Ey)
+	per_site_like = []
+	for i in range(len(freq)):
+		GT_prob = compute_genotype_sampling_probs(sampling_prob[i,:],GTs)
+		for j in range(len(reads[i])):
+			cur_like = []
+			for GT in GTs:
+				cur_like.append(1.0)
+				for ind in range(len(GT)):
+					cur_like[-1] *= read_like[(reads[i][j][ind][0],reads[i][j][ind][1])][GT[ind]]
+			cur_prob = sum(np.array(cur_like)*GT_prob)
+			per_site_like.append(cur_prob)	
+	LL = np.log(per_site_like)
+	if detail: print t1, t2, -sum(LL)
+	return LL
+
+#this expects reads to actually be an array of GLs, not an array of reads
+##same strucutre as the default version without precomputing
+#this is probably not that useful
+#TODO:This is broken 
+def compute_GT_like_precompute(reads,freq,t1,t2,detail=False):
+	if reads[0][0].ndim == 1:
+		n_diploid = 1
+	else:
+		n_diploid = len(reads[0][0])
+	n_haploid = 2*n_diploid
+	good_range = np.arange(0,n_diploid+1)
+	GTs = generate_genotypes(n_diploid)	
+	Ey = compute_Ey(freq,n_haploid,t1,t2)
+	sampling_prob = compute_sampling_probs(Ey)
+	per_site_like = []
+	for i in range(len(freq)):
+		GT_prob = compute_genotype_sampling_probs(sampling_prob[i,:],GTs)
+		for j in range(len(reads[i])):
+			cur_like = []
+			print reads[i][j]
+			for GT in GTs:
+				print GT
+				print reads[i][j][good_range,np.array(GT)]
+				cur_like.append(np.product(reads[i][j][good_range,np.array(GT)]))
+			print reads[i][j]
+			print GTs
+			print cur_like
+			raw_input()
+			cur_prob = sum(cur_like*GT_prob)
+			per_site_like.append(cur_prob)	
+	LL = np.log(per_site_like)
+	if detail: print t1, t2, -sum(LL)
+	return ll
