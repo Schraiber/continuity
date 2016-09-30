@@ -6,6 +6,8 @@ import scipy.stats as st
 import scipy.special as sp
 import copy as cp
 from scipy.sparse.linalg import expm_multiply as expma
+import itertools
+from copy import deepcopy
 
 class FreqError(Exception):
 	pass
@@ -453,6 +455,66 @@ def compute_GT_like(reads,freq,t1,t2,detail=False):
 	LL = np.log(per_site_like)
 	if detail: print t1, t2, -sum(LL)
 	return LL
+############################################################################
+###########PARTITION########################################################
+#CODE IS FROM http://jeromekelleher.net/generating-integer-partitions.html
+def partition(n):
+    a = [0 for i in range(n + 1)]
+    k = 1
+    y = n - 1
+    while k != 0:
+        x = a[k - 1] + 1
+        k -= 1
+        while 2 * x <= y:
+            a[k] = x
+            y -= x
+            k += 1
+        l = k + 1
+        while x <= y:
+            a[k] = x
+            a[l] = y
+            yield a[:k + 2]
+            x += 1
+            y -= 1
+        a[k] = x + y
+        y = x + y - 1
+        yield a[:k + 1]
+
+#CODE IS FROM http://stackoverflow.com/a/19369410
+def slice_by_lengths(lengths, the_list):
+    for length in lengths:
+        new = []
+        for i in range(length):
+            new.append(the_list.pop(0))
+        yield new
+
+def partitions(my_list):
+    partitions = partition(len(my_list))
+    permed = []
+    for each_partition in partitions:
+        permed.append(set(itertools.permutations(each_partition, len(each_partition))))
+
+    for each_tuple in itertools.chain(*permed):
+        yield list(slice_by_lengths(each_tuple, deepcopy(my_list)))
+#########################################################################
+########################################################################
+
+#This wasnts the "raw" reads data
+def find_best_config(freq,reads,detail=False):
+	num_ind = len(reads)
+	pars = []
+	lnL = []
+	parts = []
+	for partition in partitions(range(num_ind)):
+		print "Processing %s"%partition,
+		cur_opt = optimize_pop_params(freq,reads,partition,detail=detail)	
+		cur_lnL = sum(map(lambda x: x[1],cur_opt))
+		cur_pars = map(lambda x: x[0], cur_opt)
+		parts.append(partition)
+		lnL.append(cur_lnL)
+		pars.append(cur_pars)
+		print 2*(2*len(partition))+lnL
+	return parts, lnL, pars
 
 def optimize_pop_params(freq,reads,pops,detail=False):
 	freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
