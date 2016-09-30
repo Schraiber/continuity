@@ -47,7 +47,64 @@ def ancient_sample_mix_multiple(num_modern=1000,anc_pop = 0, anc_num = 1, anc_ti
 					reads[-1][-1] = (num_reads-derived_reads,derived_reads)
 	return np.array(freq), GT, reads
 
-def get_het_prob(freq,GT):
+
+#NB: This function does not support admixture
+#NB: This function models a very simple structure where all pops are splits off of a long ancestral lineage
+def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], anc_time=[200],split_time=[400],Ne0=10000,NeAnc=[10000],mu=1.25e-8,length=1000,num_rep=1000,coverage=False):
+	if not (len(anc_pop) == len(anc_per_pop) == len(anc_time) == len(split_time) == len(NeAnc)):
+		print "There are an unequal number of elements in the vectors specifying the ancient samples"
+		print "len(anc_pop) = %d, len(anc_per_pop) = %d, len(anc_time) = %d, len(split_time) = %d, len(NeAnc) = %d"%(len(anc_pop),len(anc_per_pop),len(anc_time),len(split_time),len(NeAnc))
+		return None
+	#make modern samples
+	samples = [msp.Sample(population=0,time=0)]*num_modern
+	anc_num = 0
+	num_pop = max(anc_pop)+1
+	split_times = [0]*num_pop
+	Ne = [0]*num_pop
+	Ne[0] = Ne0
+	for i in range(len(anc_pop)):
+		if anc_time[i] > split_time[i] and anc_pop[i] != 0:
+			print "The sample is more ancient than the population it belongs to"
+			print anc_time[i], split_time[i]
+			return None
+		samples.extend([msp.Sample(population=anc_pop[i],time=anc_time[i])]*(2*anc_per_pop[i]))
+		cur_pop = anc_pop[i]
+		anc_num += anc_per_pop[i]
+		split_times[cur_pop] = split_time[i]
+		Ne[cur_pop] = NeAnc[i]	
+	pop_config = [msp.PopulationConfiguration(initial_size=Ne[0])]
+	divergence = []
+	for pop in range(1,len(split_times)):
+		pop_config.append(msp.PopulationConfiguration(initial_size=Ne[pop]))
+		divergence.append(msp.MassMigration(time=split_times[pop],source=pop,destination=0,proportion=1.0))
+	sims = msp.simulate(samples=samples,Ne=Ne[0],population_configurations=pop_config,demographic_events=divergence,mutation_rate=mu,length=length,num_replicates=num_rep)
+	freq = []
+	reads = []
+	GT = []
+	for ind in range(anc_num):
+		reads.append([])
+		GT.append([])
+	sim_num = 0
+	for sim in sims:
+		for position, variant in sim.variants():
+			var_array = map(int,list(variant))
+			cur_freq = sum(var_array[:-(2*anc_num)])/float(num_modern)
+			if cur_freq == 0 or cur_freq == 1: continue
+			freq.append(cur_freq)
+			for i in range(anc_num):
+				ind_num = anc_num-i-1 #NB: indexing to get the output vector to be in the right order
+				if i == 0: cur_GT = var_array[-2:]
+				else: cur_GT = var_array[-(2*(i+1)):-(2*i)]
+				cur_GT = sum(cur_GT)
+				GT[ind_num].append(cur_GT)
+				reads[ind_num].append([None,None])
+				if coverage:
+					num_reads = st.poisson.rvs(coverage)
+					derived_reads = st.binom.rvs(num_reads, cur_GT/2.)
+					reads[ind_num][-1] = (num_reads-derived_reads,derived_reads)
+	return np.array(freq), GT, reads
+
+def get_het_prob_old(freq,GT):
 	anc_dict_list = []
 	num_ind = len(GT[0])
 	for ind in range(num_ind):
@@ -71,6 +128,29 @@ def get_het_prob(freq,GT):
 				pHet[-1].append(None)
 	return np.array(unique_freqs), np.array(pHet), anc_dict_list
 
+def get_het_prob(freq,GT):
+	anc_dict_list = []
+	num_ind = len(GT)
+	for ind in range(num_ind):
+		anc_dict_list.append({})
+	for i in range(len(freq)):
+		for ind in range(num_ind):
+			if freq[i] in anc_dict_list[ind]:
+				anc_dict_list[ind][freq[i]][GT[ind][i]] += 1.0
+			else:
+				anc_dict_list[ind][freq[i]] = np.array([0.0,0.0,0.0])
+				anc_dict_list[ind][freq[i]][GT[ind][i]] += 1.0
+	unique_freqs = sorted(np.unique(freq))
+	pHet = []
+	for ind in range(num_ind):
+		pHet.append([])
+		for i in range(len(unique_freqs)):
+			cur_anc = anc_dict_list[ind][unique_freqs[i]]
+			try:
+				pHet[-1].append(cur_anc[1]/(cur_anc[1]+cur_anc[2]))
+			except ZeroDivisionError:
+				pHet[-1].append(None)
+	return np.array(unique_freqs), np.array(pHet), anc_dict_list
 
 #read_dict is a list of arrays, sorted by freq
 ##the first level corresponds to the freqs in freq
@@ -89,6 +169,38 @@ def get_read_dict(freq,reads):
 	for freq in freqs:
 		read_list.append(read_dict[freq])
 	return freqs, read_list
+#pops is a list of lists of inds to put into pops
+#e.g. [[0,3],[1,2]] says put inds 0 and 3 in pop 1, inds 1 and 2 in pop 2 
+def make_read_dict_by_pop(freq,reads,pops):
+	num_ind = len(reads)
+	num_pops = len(pops)
+	num_ind_in_pops = sum(map(len,pops))
+	if num_ind_in_pops != num_ind:
+		print "Number of inds to cluster into pops is different from number of inds in reads"
+		print "Number in reads: %d, number in pops: %d, allocated as %s"%(num_inds,num_ind_in_pop,str(pops))
+	read_dicts = []
+	for pop in pops:
+		cur_num_ind = len(pop)
+		cur_dict = {}
+		for i in range(len(freq)):
+			cur_reads = []
+			for ind in pop:
+				cur_reads.append(reads[ind][i])
+			if freq[i] in cur_dict:
+				cur_dict[freq[i]].append(np.array(cur_reads))
+			else:
+				cur_dict[freq[i]] = []
+				cur_dict[freq[i]].append(np.array(cur_reads))
+		read_dicts.append(cur_dict)
+	freqs = sorted(read_dicts[0])
+	read_lists = []
+	for i in range(len(read_dicts)):
+		read_lists.append([])
+		for freq in freqs:
+			read_lists[-1].append(read_dicts[i][freq])
+	return freqs, read_lists
+
+
 
 def expected_het_anc(x0,t):
 	return 1.0/(3.0/2.0+(2*x0-1)/(1+np.exp(2*t)-2*x0))
@@ -162,7 +274,7 @@ def cf_sum_anc(k,t,freqs,het,hom):
 	prod_part = np.prod(prod_internal)
 	return exp_part*prod_part
 
-def test_and_plot(anc_dict,x0Anc = st.uniform.rvs(size=1), x0Split = st.uniform.rvs(size=2),plot=True):
+def test_and_plot(anc_dict,x0Anc = st.uniform.rvs(size=1), x0Split = st.uniform.rvs(size=2),plot=True,title=""):
 	het,hom = get_numbers_from_dict(anc_dict)
 	freqs = np.sort(anc_dict.keys())
 	ancTest = opt.fmin_l_bfgs_b(func=lambda x: -het_hom_likelihood_anc(x[0],freqs,het,hom), x0 = x0Anc, approx_grad=True,bounds=[[.0001,1000]],factr=10,pgtol=1e-15)
@@ -179,6 +291,7 @@ def test_and_plot(anc_dict,x0Anc = st.uniform.rvs(size=1), x0Split = st.uniform.
 		plt.xlabel("Frequency")
 		plt.ylabel("Proportion of het sites")
 		plt.legend()
+		plt.title(title)
 	return ancTest,splitTest
 
 def test_and_plot_GL():
@@ -265,6 +378,12 @@ def precompute_read_like(min_a,max_a,min_d,max_d):
 			read_like[(a,d)] = st.binom.pmf(d,a+d,[0.,.5,1.])
 	return read_like	
 
+#expects reads to be in the format with all individuals in a single population
+def bound_and_precompute_read_like(reads):
+	min_a,max_a,min_d,max_d = get_bounds_reads(reads)
+	read_like = precompute_read_like(min_a,max_a,min_d,max_d)
+	return read_like
+
 def precompute_all_read_like(reads):
 	read_like = []
 	for i in range(len(reads)):
@@ -321,6 +440,16 @@ def compute_GT_like(reads,freq,t1,t2,detail=False):
 	if detail: print t1, t2, -sum(LL)
 	return LL
 
+def optimize_pop_params(freq,reads,pops,detail=False):
+	freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
+	opts = []
+	for i in range(len(pops)):
+		print "Processing pop %d: %s"%(i,str(pops[i]))
+		read_like = bound_and_precompute_read_like(read_lists[i])
+		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_precompute_dict(read_lists[i],freqs,x[0],x[1],read_like,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]],epsilon=.001) 
+		opts.append(cur_opt)
+	return opts
+
 #This expects a precomputed dictionary of genotype likelihoods that are observed in the data, using precompute_read_like
 #TODO: If implementing with error, will need to move the precompute stage *inside* the likelihood. Should still be better than old way
 def compute_GT_like_precompute_dict(reads,freq,t1,t2,read_like,detail=False):
@@ -347,11 +476,12 @@ def compute_GT_like_precompute_dict(reads,freq,t1,t2,read_like,detail=False):
 	if detail: print t1, t2, -sum(LL)
 	return LL
 
+
 #this expects reads to actually be an array of GLs, not an array of reads
 ##same strucutre as the default version without precomputing
 #this is probably not that useful
 #TODO:This is broken 
-def compute_GT_like_precompute(reads,freq,t1,t2,detail=False):
+def compute_GT_like_precompute_all(reads,freq,t1,t2,detail=False):
 	if reads[0][0].ndim == 1:
 		n_diploid = 1
 	else:
