@@ -197,7 +197,7 @@ def make_read_dict_by_pop(freq,reads,pops):
 	for i in range(len(read_dicts)):
 		read_lists.append([])
 		for freq in freqs:
-			read_lists[-1].append(read_dicts[i][freq])
+			read_lists[-1].append(np.array(read_dicts[i][freq]))
 	return freqs, read_lists
 
 
@@ -371,17 +371,31 @@ def get_bounds_reads(reads):
 			if test_max_d > cur_max_d: cur_max_d = test_max_d
 	return cur_min_a, cur_max_a, cur_min_d, cur_max_d
 
-def precompute_read_like(min_a,max_a,min_d,max_d):
+def precompute_read_like_dict(min_a,max_a,min_d,max_d):
 	read_like = {}
 	for a in range(min_a,max_a+1):
 		for d in range(min_d,max_d+1):
 			read_like[(a,d)] = st.binom.pmf(d,a+d,[0.,.5,1.])
+	return read_like
+
+def precompute_read_like(min_a,max_a,min_d,max_d):
+	read_like = np.zeros((max_a-min_a+1,max_d-min_d+1,3))
+	for a in range(min_a,max_a+1):
+		for d in range(min_d,max_d+1):
+			
+			read_like[a-min_a,d-min_d,:] = st.binom.pmf(d,a+d,[0,.5,1])
 	return read_like	
 
 #expects reads to be in the format with all individuals in a single population
 def bound_and_precompute_read_like(reads):
 	min_a,max_a,min_d,max_d = get_bounds_reads(reads)
 	read_like = precompute_read_like(min_a,max_a,min_d,max_d)
+	return min_a, min_d, read_like
+
+#expects reads to be in the format with all individuals in a single population
+def bound_and_precompute_read_like_dict(reads):
+	min_a,max_a,min_d,max_d = get_bounds_reads(reads)
+	read_like = precompute_read_like_dict(min_a,max_a,min_d,max_d)
 	return read_like
 
 def precompute_all_read_like(reads):
@@ -445,8 +459,8 @@ def optimize_pop_params(freq,reads,pops,detail=False):
 	opts = []
 	for i in range(len(pops)):
 		print "Processing pop %d: %s"%(i,str(pops[i]))
-		read_like = bound_and_precompute_read_like(read_lists[i])
-		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_precompute_dict(read_lists[i],freqs,x[0],x[1],read_like,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]],epsilon=.001) 
+		min_a, min_d, read_like = bound_and_precompute_read_like(read_lists[i])
+		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_precompute_array(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]],epsilon=.001) 
 		opts.append(cur_opt)
 	return opts
 
@@ -476,6 +490,24 @@ def compute_GT_like_precompute_dict(reads,freq,t1,t2,read_like,detail=False):
 	if detail: print t1, t2, -sum(LL)
 	return LL
 
+def compute_GT_like_precompute_array(reads,freq,t1,t2,read_like,min_a,min_d,detail=False):
+	if reads[0][0].ndim == 1:
+		n_diploid = 1
+	else:
+		n_diploid = len(reads[0][0])
+	n_haploid = 2*n_diploid
+	GTs = generate_genotypes(n_diploid)	
+	Ey = compute_Ey(freq,n_haploid,t1,t2)
+	sampling_prob = compute_sampling_probs(Ey)
+	like_per_freq = []
+	for i in range(len(freq)):
+		GT_prob = compute_genotype_sampling_probs(sampling_prob[i,:],GTs)
+		like_matrix = np.zeros((len(reads[i]),len(GTs))) #Matrix of (num_genotypes)x(num_sites) to fill with per site genotype likelihoods
+		for j in range(len(GTs)):
+			like_matrix[:,j] = np.product(read_like[reads[i][:,:,0]-min_a,reads[i][:,:,1]-min_d,GTs[j]],axis=1)
+		like_per_freq.append(sum(np.log(np.dot(like_matrix,GT_prob))))
+	if detail: print t1, t2, -sum(like_per_freq)
+	return like_per_freq
 
 #this expects reads to actually be an array of GLs, not an array of reads
 ##same strucutre as the default version without precomputing
