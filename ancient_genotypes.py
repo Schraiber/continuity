@@ -8,6 +8,7 @@ import copy as cp
 from scipy.sparse.linalg import expm_multiply as expma
 import itertools
 from copy import deepcopy
+from numpy import random as rn
 
 class FreqError(Exception):
 	pass
@@ -105,6 +106,33 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 					derived_reads = st.binom.rvs(num_reads, cur_GT/2.)
 					reads[ind_num][-1] = (num_reads-derived_reads,derived_reads)
 	return np.array(freq), GT, reads
+
+#Writes a beagle genotype likelihood file for data from the simulations
+#NB: simulates modern individuals from the allele frequencies and HW equilibrium
+#NB: modern individuals just have a genotype likelihood of 1 for the true genotype
+def write_beagle_output(freq, reads, file_name, num_modern = 100):
+	outfile = open(file_name,"w")
+	outfile.write("marker\tallele1\tallele2\t")
+	#TODO: Need 3 columns per ind
+	modern = ['\t'.join([''.join(("modern",str(i)))]*3) for i in range(num_modern)]
+	anc = ['\t'.join([''.join(("ancient",str(i)))]*3) for i in range(len(reads))]
+	outfile.write("%s\t%s\n"%('\t'.join(modern),'\t'.join(anc)))
+	for i in range(len(freq)):
+		HW = ((1-freq[i])**2, 2*freq[i]*(1.-freq[i]),freq[i]**2)
+		modern_genotypes_draw = rn.multinomial(1,HW,num_modern)
+		modern_genotypes = map(lambda x: np.where(x==1)[0][0],modern_genotypes_draw)
+		modern_GL = np.zeros((num_modern,3))
+		modern_GL[range(num_modern),modern_genotypes] = 1
+		outfile.write("marker_%d\t0\t1"%i)
+		for ind in modern_GL:
+			outfile.write("\t")
+			outfile.write("\t".join(map(str,ind)))				
+		for ind in reads:
+			cur_GL  = st.binom.pmf(ind[i][1],sum(ind[i]),[0,.5,1])
+			outfile.write("\t")
+			outfile.write("\t".join(map(str,cur_GL/sum(cur_GL))))
+		outfile.write("\n")			
+	outfile.close()
 
 def get_het_prob_old(freq,GT):
 	anc_dict_list = []
