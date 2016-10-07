@@ -339,24 +339,13 @@ def compute_sampling_probs(Ey):
 			probs[-1].append(cur_prob)
 	return np.array(probs)
 
-#TODO: This can probably be made faster with numpy
 def get_bounds_reads(reads):
-	cur_max_a = 0
-	cur_max_d = 0
-	cur_min_a = np.inf
-	cur_min_d = np.inf
-	for i in range(len(reads)):
-		for j in range(len(reads[i])):
-			test_min_a = min(reads[i][j][:,0])
-			test_max_a = max(reads[i][j][:,0])
-			test_min_d = min(reads[i][j][:,1])
-			test_max_d = max(reads[i][j][:,1])
-			if test_min_a < cur_min_a: cur_min_a = test_min_a
-			if test_max_a > cur_max_a: cur_max_a = test_max_a
-			if test_min_d < cur_min_d: cur_min_d = test_min_d
-			if test_max_d > cur_max_d: cur_max_d = test_max_d
-	return cur_min_a, cur_max_a, cur_min_d, cur_max_d
-
+	reads_array = np.array(reads)
+	min_a = np.min(reads_array[:,:,0])
+	max_a = np.max(reads_array[:,:,0])
+	min_d = np.min(reads_array[:,:,1])
+	max_d = np.max(reads_array[:,:,1])
+	return min_a, max_a, min_d, max_d
 
 def precompute_read_like(min_a,max_a,min_d,max_d):
 	read_like = np.zeros((max_a-min_a+1,max_d-min_d+1,3))
@@ -384,12 +373,11 @@ def read_prob_DP(read_likes):
 	z = np.zeros((num_sites,num_ind,2*num_ind+1)) #the +1 is because you could have an allele freq of 2n
 	#initialize
 	z[:,0,:3] = np.array([1,2,1])*read_likes[:,0,:]
-	if num_ind == 1: return z
 	#loop
 	for j in range(1,num_ind):
 		for k in range(0,(j+1)*2):
 			z[:,j,k] = read_likes[:,j,0]*z[:,j-1,k]+2*read_likes[:,j,1]*z[:,j-1,k-1]+read_likes[:,j,2]*z[:,j-1,k-2]
-	h = z[:,j,:]#*sp.binom(2*num_ind,np.arange(2*num_ind+1))	
+	h = z[:,num_ind-1,:]	
 	return h
 
 ############################################################################
@@ -443,23 +431,23 @@ def find_best_config(freq,reads,detail=False):
 	lnL = []
 	parts = []
 	for partition in partitions(range(num_ind)):
-		print "Processing %s"%partition,
+		print "Processing %s"%partition
 		cur_opt = optimize_pop_params(freq,reads,partition,detail=detail)	
 		cur_lnL = sum(map(lambda x: x[1],cur_opt))
 		cur_pars = map(lambda x: x[0], cur_opt)
 		parts.append(partition)
 		lnL.append(cur_lnL)
 		pars.append(cur_pars)
-		print 2*(2*len(partition))+lnL
+		print 2*(2*len(partition))+cur_lnL
 	return parts, lnL, pars
 
 def optimize_pop_params(freq,reads,pops,detail=False):
+	min_a, min_d, read_like = bound_and_precompute_read_like(reads)
 	freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
 	opts = []
 	for i in range(len(pops)):
 		print "Processing pop %d: %s"%(i,str(pops[i]))
-		min_a, min_d, read_like = bound_and_precompute_read_like(read_lists[i])
-		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]],epsilon=.001)#, factr=100, pgtol=1e-10) 
+		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]],epsilon=.001, factr=10, pgtol=1e-10) 
 		opts.append(cur_opt)
 	return opts
 
