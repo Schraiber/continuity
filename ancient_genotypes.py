@@ -73,6 +73,7 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 		samples.extend([msp.Sample(population=anc_pop[i],time=anc_time[i])]*(2*anc_per_pop[i]))
 		cur_pop = anc_pop[i]
 		anc_num += anc_per_pop[i]
+		if cur_pop == 0: continue #Hack to just avoid fucking up things for dudes in the first pop
 		split_times[cur_pop] = split_time[i]
 		Ne[cur_pop] = NeAnc[i]	
 	pop_config = [msp.PopulationConfiguration(initial_size=Ne[0])]
@@ -207,7 +208,7 @@ def make_read_dict_by_pop(freq,reads,pops):
 	num_ind_in_pops = sum(map(len,pops))
 	if num_ind_in_pops != num_ind:
 		print "Number of inds to cluster into pops is different from number of inds in reads"
-		print "Number in reads: %d, number in pops: %d, allocated as %s"%(num_inds,num_ind_in_pop,str(pops))
+		print "Number in reads: %d, number in pops: %d, allocated as %s"%(num_ind,num_ind_in_pop,str(pops))
 	read_dicts = []
 	for pop in pops:
 		cur_num_ind = len(pop)
@@ -317,7 +318,7 @@ def test_and_plot(anc_dict,x0Anc = st.uniform.rvs(size=1), x0Split = st.uniform.
 		hetSplit = expected_het_split(freqs,splitTest[0][0],splitTest[0][1])
 		plt.plot(freqs,het/(het+hom),'o',label="data")
 		plt.plot(freqs,hetAnc,'r',label="anc, t = %f"%tAnc)
-		plt.plot(freqs,hetSplit,'y',label="split, t1 = %f t2 = %f"%(t1,t2))
+		plt.plot(freqs,hetSplit,'y',label="split, t1 = %0.2f t2 = %0.2f"%(t1,t2))
 		plt.xlabel("Frequency")
 		plt.ylabel("Proportion of het sites")
 		plt.legend()
@@ -411,8 +412,7 @@ def precompute_read_like_dict(min_a,max_a,min_d,max_d):
 def precompute_read_like(min_a,max_a,min_d,max_d):
 	read_like = np.zeros((max_a-min_a+1,max_d-min_d+1,3))
 	for a in range(min_a,max_a+1):
-		for d in range(min_d,max_d+1):
-			
+		for d in range(min_d,max_d+1):		
 			read_like[a-min_a,d-min_d,:] = st.binom.pmf(d,a+d,[0,.5,1])
 	return read_like	
 
@@ -428,16 +428,10 @@ def bound_and_precompute_read_like_dict(reads):
 	read_like = precompute_read_like_dict(min_a,max_a,min_d,max_d)
 	return read_like
 
-def precompute_all_read_like(reads):
-	read_like = []
-	for i in range(len(reads)):
-		read_like.append([])
-		for j in range(len(reads[i])):
-			der = reads[i][j][:,1]
-			total = reads[i][j][:,0]+reads[i][j][:,1]
-			cur_like = np.vstack((st.binom.pmf(der,total,0.),st.binom.pmf(der,total,.5),st.binom.pmf(der,total,1.)))
-			read_like[-1].append(np.transpose(cur_like))
-	return read_like
+
+def compute_all_read_like(reads,precompute_like,min_a,min_d):
+	read_likes = precompute_like[reads[:,:,0]-min_a,reads[:,:,1]-min_d,:]
+	return read_likes
 
 #NB: Takes the WHOLE matrix of genotypes
 #reads is an array where each row is a sample, reads[:,0] is ancestral reads, reads[:,1] is derived reads at that site
@@ -455,6 +449,22 @@ def compute_read_like(reads,GTs):
 		cur_likes = np.product(st.binom.pmf(der,total,p[GT]))
 		read_like.append(cur_likes)
 	return np.array(read_like)
+
+#NB: This expects the read likelihoods, 
+#read_likes[i][j][k] = probability of the reads at the ith site for the jth individual assuming genotype k
+def read_prob_DP(read_likes):
+	num_sites = len(read_likes)
+	num_ind = len(read_likes[0])
+	z = np.zeros((num_sites,num_ind,2*num_ind+1)) #the +1 is because you could have an allele freq of 2n
+	#initialize
+	z[:,0,:3] = np.array([1,2,1])*read_likes[:,0,:]
+	if num_ind == 1: return z
+	#loop
+	for j in range(1,num_ind):
+		for k in range(0,(j+1)*2):
+			z[:,j,k] = read_likes[:,j,0]*z[:,j-1,k]+2*read_likes[:,j,1]*z[:,j-1,k-1]+read_likes[:,j,2]*z[:,j-1,k-2]
+	h = z[:,j,:]#*sp.binom(2*num_ind,np.arange(2*num_ind+1))	
+	return h
 
 #NB: Sampling prob is just for ONE frequency in this case
 def compute_genotype_sampling_probs(sampling_prob, GTs):
@@ -550,7 +560,7 @@ def optimize_pop_params(freq,reads,pops,detail=False):
 	for i in range(len(pops)):
 		print "Processing pop %d: %s"%(i,str(pops[i]))
 		min_a, min_d, read_like = bound_and_precompute_read_like(read_lists[i])
-		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_precompute_array(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]],epsilon=.001) 
+		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]],epsilon=.001)#, factr=100, pgtol=1e-10) 
 		opts.append(cur_opt)
 	return opts
 
@@ -595,40 +605,24 @@ def compute_GT_like_precompute_array(reads,freq,t1,t2,read_like,min_a,min_d,deta
 		like_matrix = np.zeros((len(reads[i]),len(GTs))) #Matrix of (num_genotypes)x(num_sites) to fill with per site genotype likelihoods
 		for j in range(len(GTs)):
 			like_matrix[:,j] = np.product(read_like[reads[i][:,:,0]-min_a,reads[i][:,:,1]-min_d,GTs[j]],axis=1)
+		#return GTs, like_matrix, GT_prob
 		like_per_freq.append(sum(np.log(np.dot(like_matrix,GT_prob))))
 	if detail: print t1, t2, -sum(like_per_freq)
 	return like_per_freq
 
-#this expects reads to actually be an array of GLs, not an array of reads
-##same strucutre as the default version without precomputing
-#this is probably not that useful
-#TODO:This is broken 
-def compute_GT_like_precompute_all(reads,freq,t1,t2,detail=False):
+def compute_GT_like_DP(reads,freq,t1,t2,precompute_read_prob,min_a,min_d,detail=False):
 	if reads[0][0].ndim == 1:
 		n_diploid = 1
 	else:
 		n_diploid = len(reads[0][0])
 	n_haploid = 2*n_diploid
-	good_range = np.arange(0,n_diploid+1)
-	GTs = generate_genotypes(n_diploid)	
 	Ey = compute_Ey(freq,n_haploid,t1,t2)
 	sampling_prob = compute_sampling_probs(Ey)
-	per_site_like = []
+	like_per_freq = []
 	for i in range(len(freq)):
-		GT_prob = compute_genotype_sampling_probs(sampling_prob[i,:],GTs)
-		for j in range(len(reads[i])):
-			cur_like = []
-			print reads[i][j]
-			for GT in GTs:
-				print GT
-				print reads[i][j][good_range,np.array(GT)]
-				cur_like.append(np.product(reads[i][j][good_range,np.array(GT)]))
-			print reads[i][j]
-			print GTs
-			print cur_like
-			raw_input()
-			cur_prob = sum(cur_like*GT_prob)
-			per_site_like.append(cur_prob)	
-	LL = np.log(per_site_like)
-	if detail: print t1, t2, -sum(LL)
-	return ll
+		read_prob_per_site = compute_all_read_like(reads[i],precompute_read_prob,min_a,min_d)
+		read_prob = read_prob_DP(read_prob_per_site)
+		like_per_freq.append(sum(np.log(np.dot(read_prob,sampling_prob[i]))))
+	if detail: print t1, t2, -sum(like_per_freq)
+	return like_per_freq
+
