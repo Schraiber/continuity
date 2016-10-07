@@ -114,7 +114,6 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 def write_beagle_output(freq, reads, file_name, num_modern = 100):
 	outfile = open(file_name,"w")
 	outfile.write("marker\tallele1\tallele2\t")
-	#TODO: Need 3 columns per ind
 	modern = ['\t'.join([''.join(("modern",str(i)))]*3) for i in range(num_modern)]
 	anc = ['\t'.join([''.join(("ancient",str(i)))]*3) for i in range(len(reads))]
 	outfile.write("%s\t%s\n"%('\t'.join(modern),'\t'.join(anc)))
@@ -200,6 +199,7 @@ def get_read_dict(freq,reads):
 	for freq in freqs:
 		read_list.append(read_dict[freq])
 	return freqs, read_list
+
 #pops is a list of lists of inds to put into pops
 #e.g. [[0,3],[1,2]] says put inds 0 and 3 in pop 1, inds 1 and 2 in pop 2 
 def make_read_dict_by_pop(freq,reads,pops):
@@ -245,14 +245,6 @@ def expected_moments_split(x0,t1,t2):
 	Eanc = 1.0  - Ehet - Eder
 	return Eanc, Ehet, Eder
 
-def get_numbers_from_dict(anc_dict):
-	het = []
-	hom = []
-	for freq in sorted(anc_dict.keys()):
-		het.append(anc_dict[freq][1])
-		hom.append(anc_dict[freq][2])
-	return np.array(het), np.array(hom)
-
 #freqs, het, hom should be FIXED, determiend by data
 def het_hom_likelihood_anc(t,freqs,het,hom):
 	#check if 0 or 1 in freqs
@@ -269,41 +261,6 @@ def het_hom_likelihood_split(t1,t2,freqs,het,hom):
 	pHetExpect = expected_het_split(freqs,t1,t2)
 	likeVec = het*np.log(pHetExpect)+hom*np.log(1-pHetExpect)
 	return(sum(likeVec))
-
-#GLs should be a matrix
-#freqs is the frequency of each site, should be same length as GLs
-def GL_likelihood_split(t1,t2,freqs,GLs):
-	expect = np.transpose(expected_moments_split(freqs,t1,t2))
-	likePerLocus = np.sum(GLs*expect,axis=1)
-	LL = np.sum(np.log(likePerLocus))
-	return LL	
-
-def het_hom_likelihood_mixture(t1,t2,t3,p,freqs,het,hom):
-	if 0 in freqs or 1 in freqs:
-		raise FreqError("Remove sites that are monomophric in modern population")
-	pHetAnc = expected_het_anc(freqs,t1)
-	pHetSplit = expected_het_split(freqs,t2,t3)
-	pHetExpect = p*pHetAnc+(1.-p)*pHetSplit
-	likeVec = het*np.log(pHetExpect)+hom*np.log(1-pHetExpect)
-	return(sum(likeVec))
-
-def chi_squared_anc(t,freqs,het,hom):
-	pHetExpect = expected_het_anc(freqs,t)
-	num = het+hom
-	pHat = het/num
-	pHat[np.isnan(pHat)]=0
-	residuals = (np.sqrt(num)*(pHat-pHetExpect)**1/np.sqrt(pHetExpect*(1-pHetExpect)))
-	return residuals	 
-
-def cf_sum_anc(k,t,freqs,het,hom):
-	num = het+hom
-	pHetExpect = expected_het_anc(freqs,t)
-	exp_sum = np.sum(1./(1-pHetExpect))
-	exp_part = np.exp(1j*k*exp_sum)
-	prod_internal = (1-pHetExpect+pHetExpect*np.exp(1j*k/(num*pHetExpect*(1-pHetExpect))))**num
-	prod_internal[np.isnan(prod_internal)] = 1
-	prod_part = np.prod(prod_internal)
-	return exp_part*prod_part
 
 def test_and_plot(anc_dict,x0Anc = st.uniform.rvs(size=1), x0Split = st.uniform.rvs(size=2),plot=True,title=""):
 	het,hom = get_numbers_from_dict(anc_dict)
@@ -324,9 +281,6 @@ def test_and_plot(anc_dict,x0Anc = st.uniform.rvs(size=1), x0Split = st.uniform.
 		plt.legend()
 		plt.title(title)
 	return ancTest,splitTest
-
-def test_and_plot_GL():
-	return 0
 
 def generate_genotypes(n):
 	n -= 1 #NB: This is just because Python is dumb about what n means
@@ -385,6 +339,7 @@ def compute_sampling_probs(Ey):
 			probs[-1].append(cur_prob)
 	return np.array(probs)
 
+#TODO: This can probably be made faster with numpy
 def get_bounds_reads(reads):
 	cur_max_a = 0
 	cur_max_d = 0
@@ -402,12 +357,6 @@ def get_bounds_reads(reads):
 			if test_max_d > cur_max_d: cur_max_d = test_max_d
 	return cur_min_a, cur_max_a, cur_min_d, cur_max_d
 
-def precompute_read_like_dict(min_a,max_a,min_d,max_d):
-	read_like = {}
-	for a in range(min_a,max_a+1):
-		for d in range(min_d,max_d+1):
-			read_like[(a,d)] = st.binom.pmf(d,a+d,[0.,.5,1.])
-	return read_like
 
 def precompute_read_like(min_a,max_a,min_d,max_d):
 	read_like = np.zeros((max_a-min_a+1,max_d-min_d+1,3))
@@ -422,33 +371,10 @@ def bound_and_precompute_read_like(reads):
 	read_like = precompute_read_like(min_a,max_a,min_d,max_d)
 	return min_a, min_d, read_like
 
-#expects reads to be in the format with all individuals in a single population
-def bound_and_precompute_read_like_dict(reads):
-	min_a,max_a,min_d,max_d = get_bounds_reads(reads)
-	read_like = precompute_read_like_dict(min_a,max_a,min_d,max_d)
-	return read_like
-
 
 def compute_all_read_like(reads,precompute_like,min_a,min_d):
 	read_likes = precompute_like[reads[:,:,0]-min_a,reads[:,:,1]-min_d,:]
 	return read_likes
-
-#NB: Takes the WHOLE matrix of genotypes
-#reads is an array where each row is a sample, reads[:,0] is ancestral reads, reads[:,1] is derived reads at that site
-def compute_read_like(reads,GTs):
-	p = np.array([0,.5,1])
-	read_like = []
-	#Hack to deal with the fact that some freqs may not have multiple sites...
-	try:
-		der = reads[:,1]
-		total = reads[:,0]+reads[:,1]
-	except IndexError:
-		der = reads[1]
-		total = reads[0]+reads[1]
-	for GT in GTs:
-		cur_likes = np.product(st.binom.pmf(der,total,p[GT]))
-		read_like.append(cur_likes)
-	return np.array(read_like)
 
 #NB: This expects the read likelihoods, 
 #read_likes[i][j][k] = probability of the reads at the ith site for the jth individual assuming genotype k
@@ -466,33 +392,6 @@ def read_prob_DP(read_likes):
 	h = z[:,j,:]#*sp.binom(2*num_ind,np.arange(2*num_ind+1))	
 	return h
 
-#NB: Sampling prob is just for ONE frequency in this case
-def compute_genotype_sampling_probs(sampling_prob, GTs):
-	GT_prob = map(lambda GT: 2**sum(GT==1)*sampling_prob[sum(GT)],GTs)
-	return np.array(GT_prob)
-
-#reads is a list of arrays, sorted by freq
-##the first level corresponds to the freqs in freq
-##within each frequency, there are arrays of reads that can be passed to compute_read_like
-def compute_GT_like(reads,freq,t1,t2,detail=False):
-	if reads[0][0].ndim == 1:
-		n_diploid = 1
-	else:
-		n_diploid = len(reads[0][0])
-	n_haploid = 2*n_diploid
-	GTs = generate_genotypes(n_diploid)	
-	Ey = compute_Ey(freq,n_haploid,t1,t2)
-	sampling_prob = compute_sampling_probs(Ey)
-	per_site_like = []
-	for i in range(len(freq)):
-		GT_prob = compute_genotype_sampling_probs(sampling_prob[i,:],GTs)
-		for j in range(len(reads[i])):
-			read_like = compute_read_like(reads[i][j],GTs)
-			cur_prob = sum(read_like*GT_prob)
-			per_site_like.append(cur_prob)	
-	LL = np.log(per_site_like)
-	if detail: print t1, t2, -sum(LL)
-	return LL
 ############################################################################
 ###########PARTITION########################################################
 #CODE IS FROM http://jeromekelleher.net/generating-integer-partitions.html
@@ -563,52 +462,6 @@ def optimize_pop_params(freq,reads,pops,detail=False):
 		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]],epsilon=.001)#, factr=100, pgtol=1e-10) 
 		opts.append(cur_opt)
 	return opts
-
-#This expects a precomputed dictionary of genotype likelihoods that are observed in the data, using precompute_read_like
-#TODO: If implementing with error, will need to move the precompute stage *inside* the likelihood. Should still be better than old way
-def compute_GT_like_precompute_dict(reads,freq,t1,t2,read_like,detail=False):
-	if reads[0][0].ndim == 1:
-		n_diploid = 1
-	else:
-		n_diploid = len(reads[0][0])
-	n_haploid = 2*n_diploid
-	GTs = generate_genotypes(n_diploid)	
-	Ey = compute_Ey(freq,n_haploid,t1,t2)
-	sampling_prob = compute_sampling_probs(Ey)
-	per_site_like = []
-	for i in range(len(freq)):
-		GT_prob = compute_genotype_sampling_probs(sampling_prob[i,:],GTs)
-		for j in range(len(reads[i])):
-			cur_like = []
-			for GT in GTs:
-				cur_like.append(1.0)
-				for ind in range(len(GT)):
-					cur_like[-1] *= read_like[(reads[i][j][ind][0],reads[i][j][ind][1])][GT[ind]]
-			cur_prob = sum(np.array(cur_like)*GT_prob)
-			per_site_like.append(cur_prob)	
-	LL = np.log(per_site_like)
-	if detail: print t1, t2, -sum(LL)
-	return LL
-
-def compute_GT_like_precompute_array(reads,freq,t1,t2,read_like,min_a,min_d,detail=False):
-	if reads[0][0].ndim == 1:
-		n_diploid = 1
-	else:
-		n_diploid = len(reads[0][0])
-	n_haploid = 2*n_diploid
-	GTs = generate_genotypes(n_diploid)	
-	Ey = compute_Ey(freq,n_haploid,t1,t2)
-	sampling_prob = compute_sampling_probs(Ey)
-	like_per_freq = []
-	for i in range(len(freq)):
-		GT_prob = compute_genotype_sampling_probs(sampling_prob[i,:],GTs)
-		like_matrix = np.zeros((len(reads[i]),len(GTs))) #Matrix of (num_genotypes)x(num_sites) to fill with per site genotype likelihoods
-		for j in range(len(GTs)):
-			like_matrix[:,j] = np.product(read_like[reads[i][:,:,0]-min_a,reads[i][:,:,1]-min_d,GTs[j]],axis=1)
-		#return GTs, like_matrix, GT_prob
-		like_per_freq.append(sum(np.log(np.dot(like_matrix,GT_prob))))
-	if detail: print t1, t2, -sum(like_per_freq)
-	return like_per_freq
 
 def compute_GT_like_DP(reads,freq,t1,t2,precompute_read_prob,min_a,min_d,detail=False):
 	if reads[0][0].ndim == 1:
