@@ -375,7 +375,7 @@ def read_prob_DP(read_likes):
 	z[:,0,:3] = np.array([1,2,1])*read_likes[:,0,:]
 	#loop
 	for j in range(1,num_ind):
-		for k in range(0,(j+1)*2):
+		for k in range(0,(j+1)*2+1):
 			z[:,j,k] = read_likes[:,j,0]*z[:,j-1,k]+2*read_likes[:,j,1]*z[:,j-1,k-1]+read_likes[:,j,2]*z[:,j-1,k-2]
 	h = z[:,num_ind-1,:]	
 	return h
