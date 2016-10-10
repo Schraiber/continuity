@@ -208,7 +208,7 @@ def make_read_dict_by_pop(freq,reads,pops):
 	num_ind_in_pops = sum(map(len,pops))
 	if num_ind_in_pops != num_ind:
 		print "Number of inds to cluster into pops is different from number of inds in reads"
-		print "Number in reads: %d, number in pops: %d, allocated as %s"%(num_ind,num_ind_in_pop,str(pops))
+		print "Number in reads: %d, number in pops: %d, allocated as %s"%(num_ind,num_ind_in_pops,str(pops))
 	read_dicts = []
 	for pop in pops:
 		cur_num_ind = len(pop)
@@ -441,15 +441,63 @@ def find_best_config(freq,reads,detail=False):
 		print 2*(2*len(partition))+cur_lnL
 	return parts, lnL, pars
 
+#TODO: This does not guarantee that the number of clusters remains at k
+#TODO: Probably need to implement a proper EM algorithm
+#TODO: Proper EM might be hard. 
+#TODO: Maybe just hack so that if one cluster gets empty, you pop a dude out?
+def cluster_anc(freq,reads,k,num_iter=10, detail=False):
+	num_ind = len(reads)
+	all_separate_pops = []
+	for i in range(num_ind):
+		all_separate_pops.append([i])
+	opts_separate = optimize_pop_params(freq,reads,all_separate_pops,detail=detail)
+	lnL_separate = map(lambda x: x[1],opts_separate)
+	freqs, reads_per_ind = make_read_dict_by_pop(freq,reads,all_separate_pops)
+	min_a, min_d, read_prob = bound_and_precompute_read_like(reads)
+	first_inds = rn.choice(num_ind,k)
+	params = [o[0] for o in np.array(opts_separate)[first_inds]]
+	pop_labels = np.zeros(num_ind)
+	for i in range(num_iter):
+		for j in range(num_ind):
+			indLnL = np.full(k,-np.inf)
+			indLnLBest = []
+			for l in range(k):
+				indLnL[l] = sum(compute_GT_like_DP(reads_per_ind[j],freqs, params[l][0],params[l][1],read_prob,min_a,min_d,detail=False))
+			pop_labels[j] = np.argmax(indLnL)
+			indLnLBest.append(-indLnL[pop_labels[j]])
+		new_pops = np.array([np.where(pop_labels==i)[0].tolist() for i in range(k)])
+		print pop_labels
+		print new_pops
+		#this should make sure that every pop has a dude in it
+		for pop in new_pops:
+			if np.array_equal(pop,[]):
+				new_guy = np.argmax(np.array(indLnLBest)-np.array(lnL_separate))
+				new_pops[pop_labels[new_guy]].remove(new_guy)
+				new_pops[i] = [new_guy]
+				indLnLBest[new_guy] = lnL_separate[new_guy]
+		print pop_labels
+		print new_pops
+		raw_input()
+		#if i > 1 and new_pops == pops: break
+		pops = new_pops
+		print pop_labels, pops
+		opts = optimize_pop_params(freq,reads,pops,detail=detail)
+		params = [o[0] if o else None for o in opts]
+	return opts, pops	
+
 def optimize_pop_params(freq,reads,pops,detail=False):
 	min_a, min_d, read_like = bound_and_precompute_read_like(reads)
 	freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
 	opts = []
 	for i in range(len(pops)):
+		if np.array_equal(pops[i],[]):
+			opts.append(None)
+			continue
 		print "Processing pop %d: %s"%(i,str(pops[i]))
-		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]],epsilon=.001, factr=10, pgtol=1e-10) 
+		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]],epsilon=.001)#, factr=10, pgtol=1e-10) 
 		opts.append(cur_opt)
 	return opts
+	
 
 def compute_GT_like_DP(reads,freq,t1,t2,precompute_read_prob,min_a,min_d,detail=False):
 	if reads[0][0].ndim == 1:
