@@ -506,6 +506,7 @@ def cluster_k(freq, reads, k, num_iter=10, detail=False):
 	calculated = {}
 	for i in range(len(cur_pops)):
 		calculated[tuple(cur_pops[i])] = cur_opts[i]
+	print cups_pops, sum(map(lambda x: x[1], cur_opts))
 	for i in range(num_iter):
 		for ind in range(num_ind):
 			best_lamb = 0
