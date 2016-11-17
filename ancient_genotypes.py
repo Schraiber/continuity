@@ -486,6 +486,67 @@ def cluster_anc(freq,reads,k,num_iter=10, detail=False):
 		params = [o[0] if o else None for o in opts]
 	return opts, pops
 
+def chunk(num_ind,k):
+	seq = range(num_ind)
+	rn.shuffle(seq)
+	avg = num_ind/float(k)
+	out = []
+	last = 0.0
+	while last < num_ind:
+		out.append(sorted(seq[int(last):int(last+avg)]))
+		last += avg
+	return out
+
+def cluster_k(freq, reads, k, num_iter=10, detail=False):
+	num_ind = len(reads)
+	first_inds = rn.choice(num_ind,k)
+	#cur_pops = [[ind] for ind in first_inds] #initialize with single inds
+	cur_pops = chunk(num_ind,k)
+	cur_opts = optimize_pop_params(freq,reads,cur_pops,detail=detail)
+	calculated = {}
+	for i in range(len(cur_pops)):
+		calculated[tuple(cur_pops[i])] = cur_opts[i]
+	for i in range(num_iter):
+		for ind in range(num_ind):
+			best_lamb = 0
+			best_pop = []
+			old_pop = map(lambda x: ind in x, cur_pops).index(True)
+			if len(cur_pops[old_pop]) == 1: continue
+			cur_minus = list(cur_pops[old_pop])
+			cur_minus.remove(ind)
+			if tuple(cur_minus) not in calculated:
+				cur_minus_opt = optimize_params_one_pop(freq,reads,cur_minus,detail=detail)
+				calculated[tuple(cur_minus)] = cur_minus_opt
+			else:
+				cur_minus_opt = calculated[tuple(cur_minus)]
+			for j in range(len(cur_pops)):
+				if ind in cur_pops[j]:
+					continue
+				cur_test = sorted([item for sublist in [cur_pops[j],[ind]] for item in sublist])
+				if tuple(cur_test) not in calculated:
+					cur_test_opt = optimize_params_one_pop(freq,reads,cur_test,detail=detail)
+					calculated[tuple(cur_test)] = cur_test_opt
+				else:
+					cur_test_opt = calculated[tuple(cur_test)]
+				new_lnL = cur_test_opt[1] + cur_minus_opt[1] #the one it's in now, the old one without it
+				old_lnL = cur_opts[j][1] + cur_opts[old_pop][1]
+				lamb = 2*(old_lnL-new_lnL)
+				print [cur_test, cur_minus], [cur_pops[j], cur_pops[old_pop]], lamb
+				if lamb > best_lamb:
+					best_lamb = lamb
+					best_pop = cur_test
+					best_test_opt = cur_test_opt
+					best_j = j
+			if best_lamb > 0:
+				cur_opts[best_j] = best_test_opt
+				cur_opts[old_pop] = cur_minus_opt
+				cur_pops[best_j] = best_pop
+				cur_pops[old_pop] = cur_minus
+			print cur_pops, sum(map(lambda x: x[1], cur_opts))
+		print cur_pops, sum(map(lambda x: x[1], cur_opts))
+	return cur_pops, cur_opts
+	
+
 def cluster_join(freq,reads,eps=1e-4,detail=False):
 	num_ind = len(reads)
 	cur_pops = []
