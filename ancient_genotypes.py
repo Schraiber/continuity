@@ -31,8 +31,8 @@ def ancient_sample_mix_multiple(num_modern=1000,anc_pop = 0, anc_num = 1, anc_ti
 	GT = []
 	sim_num = 0
 	for sim in sims:
-		for position, variant in sim.variants():
-			var_array = map(int,list(variant))
+		for variant in sim.variants():
+			var_array = variant.genotypes
 			cur_freq = sum(var_array[:-(2*anc_num)])/float(num_modern)
 			if cur_freq == 0 or cur_freq == 1: continue
 			freq.append(cur_freq)
@@ -90,8 +90,8 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 		GT.append([])
 	sim_num = 0
 	for sim in sims:
-		for position, variant in sim.variants():
-			var_array = map(int,list(variant))
+		for variant in sim.variants():
+			var_array = variant.genotypes
 			cur_freq = sum(var_array[:-(2*anc_num)])/float(num_modern)
 			if cur_freq == 0 or cur_freq == 1: continue
 			freq.append(cur_freq)
@@ -107,6 +107,12 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 					derived_reads = st.binom.rvs(num_reads, cur_GT/2.)
 					reads[ind_num][-1] = (num_reads-derived_reads,derived_reads)
 	return np.array(freq), GT, reads
+
+def simulate_fixed_reads(num_reads,num_ind,t1,t2,numSNP = 100000, num_modern = 1000):
+	cov_per_ind = num_reads/float(num_ind)
+	freq, GT, reads = (0,0,0)
+	
+	
 
 #Writes a beagle genotype likelihood file for data from the simulations
 #NB: simulates modern individuals from the allele frequencies and HW equilibrium
@@ -458,32 +464,72 @@ def cluster_anc(freq,reads,k,num_iter=10, detail=False):
 	params = [o[0] for o in np.array(opts_separate)[first_inds]]
 	pop_labels = np.zeros(num_ind)
 	for i in range(num_iter):
+		indLnLBest = []
 		for j in range(num_ind):
 			indLnL = np.full(k,-np.inf)
-			indLnLBest = []
 			for l in range(k):
 				indLnL[l] = sum(compute_GT_like_DP(reads_per_ind[j],freqs, params[l][0],params[l][1],read_prob,min_a,min_d,detail=False))
 			pop_labels[j] = np.argmax(indLnL)
 			indLnLBest.append(-indLnL[pop_labels[j]])
 		new_pops = np.array([np.where(pop_labels==i)[0].tolist() for i in range(k)])
-		print pop_labels
-		print new_pops
 		#this should make sure that every pop has a dude in it
-		for pop in new_pops:
+		for p,pop in enumerate(new_pops):
 			if np.array_equal(pop,[]):
 				new_guy = np.argmax(np.array(indLnLBest)-np.array(lnL_separate))
 				new_pops[pop_labels[new_guy]].remove(new_guy)
-				new_pops[i] = [new_guy]
+				new_pops[p] = [new_guy]
 				indLnLBest[new_guy] = lnL_separate[new_guy]
-		print pop_labels
-		print new_pops
-		raw_input()
 		#if i > 1 and new_pops == pops: break
 		pops = new_pops
 		print pop_labels, pops
 		opts = optimize_pop_params(freq,reads,pops,detail=detail)
 		params = [o[0] if o else None for o in opts]
-	return opts, pops	
+	return opts, pops
+
+def cluster_join(freq,reads,eps=1e-4,detail=False):
+	num_ind = len(reads)
+	cur_pops = []
+	for i in range(num_ind):
+		cur_pops.append([i])
+	cur_opts = optimize_pop_params(freq,reads,cur_pops,detail=detail-1)
+	any_to_merge = True
+	calculated = {}
+	while any_to_merge:
+		best_merge = []
+		best_lambda = 0
+		best_improv = 0
+		any_to_merge = False
+		for i in range(len(cur_pops)-1):
+			for j in range(i+1,len(cur_pops)):
+				cur_test = [item for sublist in [cur_pops[i],cur_pops[j]] for item in sublist]
+				print cur_test
+				if tuple(cur_test) not in calculated:
+					cur_test_opt = optimize_params_one_pop(freq,reads,cur_test,detail=detail-1)
+					calculated[tuple(cur_test)] = cur_test_opt
+				else:
+					cur_test_opt = calculated[tuple(cur_test)]
+				old_lnL = cur_opts[i][1] + cur_opts[j][1]
+				new_lnL = cur_test_opt[1]
+				new_lambda = 2*(old_lnL-new_lnL)
+				rel_improv = -(new_lnL/old_lnL-1)
+				if detail: print old_lnL, new_lnL, new_lambda, rel_improv
+				#if new_lambda > best_lambda:
+				if rel_improv > eps and rel_improv > best_improv:
+					best_merge = cur_test
+					best_i = i
+					best_j = j
+					best_opt = cur_test_opt
+					best_lambda = new_lambda
+					best_improv = rel_improv
+					any_to_merge = True
+		if best_lambda == 0: break
+		print best_merge, best_lambda, best_improv
+		cur_opts[best_i] = best_opt
+		cur_opts.pop(best_j)	
+		cur_pops[best_i] = best_merge
+		cur_pops.pop(best_j)
+		print cur_pops
+	return cur_pops, cur_opts
 
 def optimize_pop_params(freq,reads,pops,detail=False):
 	min_a, min_d, read_like = bound_and_precompute_read_like(reads)
@@ -497,6 +543,14 @@ def optimize_pop_params(freq,reads,pops,detail=False):
 		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]],epsilon=.001)#, factr=10, pgtol=1e-10) 
 		opts.append(cur_opt)
 	return opts
+
+def optimize_params_one_pop(freq,reads,pop,detail=False):
+	all_inds = set(range(len(reads)))
+	not_in_pop = all_inds.difference(pop)
+	freqs, read_lists = make_read_dict_by_pop(freq,reads,[pop,list(not_in_pop)])
+	min_a, min_d, read_like = bound_and_precompute_read_like(reads)
+	cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[0],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]],epsilon=.001)#, factr=10, pgtol=1e-10) 
+	return cur_opt
 	
 
 def compute_GT_like_DP(reads,freq,t1,t2,precompute_read_prob,min_a,min_d,detail=False):
