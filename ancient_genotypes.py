@@ -507,7 +507,7 @@ def cluster_k(freq, reads, k, num_iter=10, initialize = "random", detail=False):
 		all_separate = [[i] for i in range(num_ind)]
 		sep_opts = optimize_pop_params(freq,reads,all_separate,detail=detail)
 		pars = np.array(map(lambda x: x[0], sep_opts))
-		kmeans = cl.KMeans(n_cluster=k).fit(pars)
+		kmeans = cl.KMeans(n_clusters=k).fit(pars)
 		labels = kmeans.labels_
 		cur_pops = [[] for i in range(k)]
 		for i in range(len(labels)):
