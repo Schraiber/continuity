@@ -9,6 +9,7 @@ from scipy.sparse.linalg import expm_multiply as expma
 import itertools
 from copy import deepcopy
 from numpy import random as rn
+import sklearn.cluster as cl
 
 class FreqError(Exception):
 	pass
@@ -497,11 +498,24 @@ def chunk(num_ind,k):
 		last += avg
 	return out
 
-def cluster_k(freq, reads, k, num_iter=10, detail=False):
+def cluster_k(freq, reads, k, num_iter=10, initialize = "random", detail=False):
 	num_ind = len(reads)
-	first_inds = rn.choice(num_ind,k)
-	#cur_pops = [[ind] for ind in first_inds] #initialize with single inds
-	cur_pops = chunk(num_ind,k)
+	if initialize is "random":
+		first_inds = rn.choice(num_ind,k)
+		cur_pops = chunk(num_ind,k)
+	elif initialize is "kmeans":
+		all_separate = [[i] for i in range(num_ind)]
+		sep_opts = optimize_pop_params(freq,reads,all_separate,detail=detail)
+		pars = np.array(map(lambda x: x[0], sep_opts))
+		kmeans = cl.KMeans(n_cluster=k).fit(pars)
+		labels = kmeans.labels_
+		cur_pops = [[] for i in range(k)]
+		for i in range(len(labels)):
+			cur_pops[labels[i]].append(i)
+				
+	else:
+		print "Unknown initialization procedure"
+		return 0
 	cur_opts = optimize_pop_params(freq,reads,cur_pops,detail=detail)
 	calculated = {}
 	for i in range(len(cur_pops)):
