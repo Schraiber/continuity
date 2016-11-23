@@ -109,10 +109,29 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 					reads[ind_num][-1] = (num_reads-derived_reads,derived_reads)
 	return np.array(freq), GT, reads
 
-def simulate_fixed_reads(num_reads,num_ind,t1,t2,numSNP = 100000, num_modern = 1000):
-	cov_per_ind = num_reads/float(num_ind)
-	freq, GT, reads = (0,0,0)
-	
+def parse_reads(read_file_name,cutoff=0):
+	read_file = open(read_file_name)
+	freq = []
+	samples = []
+	header = read_file.readline()
+	headerSplit = header.strip().split()
+	inds_alleles = np.array(headerSplit[3:])
+	der_indices = np.arange(len(inds_alleles),step=3)
+	anc_indices = np.arange(1,len(inds_alleles),step=3)
+	inds = [x.split("_")[0] for x in inds_alleles[der_indices]]
+	reads = [[] for i in range(len(inds))]
+	for line in read_file:
+		splitLine = line.strip().split()
+		read_counts = np.array(map(int,splitLine[3:]))
+		der_counts = read_counts[der_indices]
+		anc_counts = read_counts[anc_indices]
+		sample_has_reads = (der_counts > 0) | (anc_counts > 0)
+		samples_with_reads = sum(sample_has_reads)
+		if float(samples_with_reads)/len(inds) < cutoff: continue
+		freq.append(float(splitLine[2]))
+		for i in range(len(inds)):
+			reads[i].append((der_counts[i],anc_counts[i]))
+	return np.array(freq), reads, inds
 	
 
 #Writes a beagle genotype likelihood file for data from the simulations

@@ -4,7 +4,7 @@ import glob
 import sys
 
 parser = argparse.ArgumentParser("Get counts of reads from ancient low coverage data relative to frequencies from a modern reference population")
-parser.add_argument("-v", required = True, help = "VCF of modern reference individuals")
+parser.add_argument("-v", required = True, help = "Directory of VCFs of modern reference individuals")
 parser.add_argument("-r", required = True, help = "List of individuals in modern reference population")
 parser.add_argument("-c", type=float, default = 1.0,  help = "Minimum number of individuals in reference population to include site")
 parser.add_argument("-e", default="", help = "Comma-separated list of excluded chromosomes")
@@ -33,7 +33,14 @@ sys.stdout.write("%s\n"%header)
 
 #open VCF 
 #TODO: Need to open a whole path of VCFs
-vcf =  pysam.VariantFile(args.v)
+vcfs = glob.glob("%s/*.vcf.gz"%args.v)
+vcf_files = [None]*len(vcfs)
+for vcf in vcfs:
+	try:
+		chrom = int(vcf.split("/")[-1].split(".")[1][3:])
+	except ValueError:
+		continue
+	vcf_files[chrom] =  pysam.VariantFile(vcf)
 
 #open SNP file
 SNPs = open(args.s)
@@ -44,11 +51,12 @@ for line in open(args.r):
 	inds.append(line.strip())
 
 #loop over SNPs
-for SNP in SNPs:
+for i, SNP in enumerate(SNPs):
 	SNP_split = SNP.split()
 	chrom = SNP_split[1]
 	pos = int(SNP_split[3])
-	for variant in vcf.fetch(str(chrom), pos-1, pos):
+	if i %% 1000 == 0: sys.stderr.write("%s %s"%(chrom, pos))
+	for variant in vcf_files[int(chrom)].fetch(chrom, pos-1, pos):
 		if variant.pos != pos: break #for now, skip ones where any with the wrong pos are returned...
 		ref = variant.ref
 		alt = variant.alts
@@ -87,11 +95,18 @@ for SNP in SNPs:
 				if pileupcolumn.pos != pos: continue
 				for pileupread in pileupcolumn.pileups:
 					if pileupread.is_del or pileupread.is_refskip: continue
-					base = pileupread.alignment.query_sequence[pileupread.query_position]
+					#base = pileupread.alignment.query_sequence[pileupread.query_position]
+					base = pileupread.alignment.query_sequence[pileupread.query_position-1]
 					#TODO: Figure out why I'm getting so many other counts
 					if base == der: der_count += 1
 					elif base == AA: anc_count += 1
-					else: other_count += 1
+					else: 
+						#sys.stderr.write("%s %s\n"%(ref, alt))
+						#sys.stderr.write("%s %s\n"%(AA, der))
+						#sys.stderr.write("%s\n"%(base))
+						#sys.stderr.write("%s %s\n"%(base_before, base))
+						#raw_input()
+						other_count += 1
 			sys.stdout.write("%d\t%d\t%d"%(der_count,anc_count,other_count))
 		sys.stdout.write("\n")
 
