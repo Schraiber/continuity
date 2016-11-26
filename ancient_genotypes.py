@@ -365,6 +365,36 @@ def compute_sampling_probs(Ey):
 			probs[-1].append(cur_prob)
 	return np.array(probs)
 
+#NB: includes k = 0 case
+def generate_Qd_het(n):
+	Q = np.zeros((n+1,n+1))
+	for k in range(n+1):
+		Q[k,k] = -k*(n-k+1)
+		if k > 0: Q[k,k-1] = .5*k*(k-1)
+		if k < n: Q[k,k+1] = .5*(k-n-1)*(k-n)
+	return Q
+
+def generate_Q_het(n):
+	Q = np.zeros((n+1,n+1))
+	for k in range(n+1):
+		Q[k,k] = -k*(n-k)
+		if k > 0: Q[k,k-1] = .5*k*(k-1)
+		if k < n: Q[k,k+1] = .5*(n-k-1)*(n-k)
+	return Q
+
+def generate_het(freq, n):
+	pows = np.arange(0,n+1)
+	hetMat = np.array(map(lambda x: x**pows*(1-x)**(n-pows),np.array(freq)))
+	return np.transpose(hetMat)
+
+def compute_Ehet(freq, n, t1, t2):
+	Qd = generate_Qd_het(n)
+	Q = generate_Q_het(n)
+	het = generate_het(freq,n)
+	backward = expma(Qd*t1,het)
+	Ehet = expma(Q*t2,backward)
+	return np.transpose(Ehet)	
+
 def get_bounds_reads(reads):
 	reads_array = np.array(reads)
 	min_a = np.min(reads_array[:,:,0])
