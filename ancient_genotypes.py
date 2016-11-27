@@ -408,7 +408,19 @@ def precompute_read_like(min_a,max_a,min_d,max_d):
 	for a in range(min_a,max_a+1):
 		for d in range(min_d,max_d+1):		
 			read_like[a-min_a,d-min_d,:] = st.binom.pmf(d,a+d,[0,.5,1])
-	return read_like	
+	return read_like
+
+#error is a vector of error rates, one for each sample
+#probably can be optmized by having a different min and max for each ind...
+def precompute_read_like_error(min_a,max_a,min_d,max_d,errors):
+	num_ind = len(errors)
+	read_like = np.zeros((num_ind,max_a-min_a+1,max_d-min_d+1,3))
+	p = np.array([errors,errors/2+(1-errors)/2,1-errors])
+	for a in range(min_a,max_a+1):
+		for d in range(min_d,max_d+1):
+			read_like[:,a-min_a,d-min_d,:] = np.transpose(st.binom.pmf(d,a+d,p))
+	return read_like
+		
 
 #expects reads to be in the format with all individuals in a single population
 def bound_and_precompute_read_like(reads):
@@ -419,6 +431,10 @@ def bound_and_precompute_read_like(reads):
 
 def compute_all_read_like(reads,precompute_like,min_a,min_d):
 	read_likes = precompute_like[reads[:,:,0]-min_a,reads[:,:,1]-min_d,:]
+	return read_likes
+
+def compute_all_read_like_error(reads,precompute_like,min_a,min_d):
+	read_likes = precompute_like[:,reads[:,:,0]-min_a,reads[:,:,1]-min_d,:]
 	return read_likes
 
 #NB: This expects the read likelihoods, 
