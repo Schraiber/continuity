@@ -108,6 +108,7 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 				reads[ind_num].append([None,None])
 				if coverage:
 					num_reads = st.poisson.rvs(coverage)
+					#num_reads = st.geom.rvs(1./coverage)
 					p_der = cur_GT/2.*(1-error[ind_num])+(1-cur_GT/2.)*error[ind_num]
 					derived_reads = st.binom.rvs(num_reads, p_der)
 					reads[ind_num][-1] = (num_reads-derived_reads,derived_reads)
