@@ -686,6 +686,24 @@ def optimize_pop_params(freq,reads,pops,detail=False):
 		opts.append(cur_opt)
 	return opts
 
+def optimize_pop_params_error(freq,reads,pops,detail=False):
+	min_a, max_a, min_d, max_d = get_bounds_reads(reads)
+	freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
+	opts = []
+	t_bounds = np.array(((0,10),(0,10)))
+	for i in range(len(pops)):
+		if np.array_equal(pops[i],[]):
+			opts.append(None)
+			continue
+		print "Processing pop %d: %s"%(i, str(pops[i]))
+		num_ind_in_pop = len(read_lists[i][0][0])
+		params_init = np.hstack((st.uniform.rvs(size=2),st.uniform.rvs(size=num_ind_in_pop,scale=.1)))
+		e_bounds = np.transpose(np.vstack((np.full(num_ind_in_pop,0),np.full(num_ind_in_pop,.5))))
+		bounds = np.vstack((t_bounds,e_bounds))
+		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)
+		opts.append(cur_opt)
+	return opts	
+
 def optimize_params_one_pop(freq,reads,pop,detail=False):
 	all_inds = set(range(len(reads)))
 	not_in_pop = all_inds.difference(pop)
@@ -725,3 +743,7 @@ def compute_GT_like_DP_error(reads,freq,t1,t2,precompute_read_prob,min_a,min_d,d
 	if detail: print t1, t2, -sum(like_per_freq)
 	return like_per_freq
 
+def likelihood_error(reads,freq,t1,t2,error,min_a,max_a,min_d,max_d,detail=False):
+	read_probs = precompute_read_like_error(min_a,max_a,min_d,max_d,error)
+	if detail > 1: print error
+	return compute_GT_like_DP_error(reads,freq,t1,t2,read_probs,min_a,min_d,detail=detail)
