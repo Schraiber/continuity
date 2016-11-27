@@ -416,9 +416,15 @@ def precompute_read_like_error(min_a,max_a,min_d,max_d,errors):
 	num_ind = len(errors)
 	read_like = np.zeros((max_a-min_a+1,max_d-min_d+1,num_ind,3))
 	p = np.array([errors,errors/2+(1-errors)/2,1-errors])
-	for a in range(min_a,max_a+1):
-		for d in range(min_d,max_d+1):
-			read_like[a-min_a,d-min_d,:,:] = np.transpose(st.binom.pmf(d,a+d,p))
+	a = np.arange(min_a,max_a+1)
+	d = np.arange(min_d,max_d+1)
+	for i in range(num_ind):
+		for G in range(3):
+			read_like[:,:,i,G] = st.binom.pmf(d,a[:,None]+d,p[G,i])
+	#read_like[a-min_a,d-min_d,:,:] = np.transpose(st.binom.pmf(d,a[:,None]+d,p))
+	#for a in range(min_a,max_a+1):
+	#	for d in range(min_d,max_d+1):
+	#		read_like[a-min_a,d-min_d,:,:] = np.transpose(st.binom.pmf(d,a+d,p))
 	return read_like
 		
 
