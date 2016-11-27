@@ -704,9 +704,11 @@ def optimize_pop_params_error(freq,reads,pops,detail=False):
 		print "Processing pop %d: %s"%(i, str(pops[i]))
 		num_ind_in_pop = len(read_lists[i][0][0])
 		params_init = np.hstack((st.uniform.rvs(size=2),st.uniform.rvs(size=num_ind_in_pop,scale=.1)))
-		e_bounds = np.transpose(np.vstack((np.full(num_ind_in_pop,0),np.full(num_ind_in_pop,.5))))
+		e_bounds = np.transpose(np.vstack((np.full(num_ind_in_pop,0),np.full(num_ind_in_pop,.1))))
 		bounds = np.vstack((t_bounds,e_bounds))
-		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)
+		#TODO: MAKE SURE THE LIKELIHOOD IS CORRECT
+		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds, factr = 1, pgtol = 1e-15)
+		print cur_opt[0], cur_opt[1]
 		opts.append(cur_opt)
 	return opts	
 
