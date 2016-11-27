@@ -54,11 +54,14 @@ def ancient_sample_mix_multiple(num_modern=1000,anc_pop = 0, anc_num = 1, anc_ti
 
 #NB: This function does not support admixture
 #NB: This function models a very simple structure where all pops are splits off of a long ancestral lineage
-def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], anc_time=[200],split_time=[400],Ne0=10000,NeAnc=[10000],mu=1.25e-8,length=1000,num_rep=1000,coverage=False):
+def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], anc_time=[200],split_time=[400],Ne0=10000,NeAnc=[10000],mu=1.25e-8,length=1000,num_rep=1000,coverage=False, error=None):
 	if not (len(anc_pop) == len(anc_per_pop) == len(anc_time) == len(split_time) == len(NeAnc)):
 		print "There are an unequal number of elements in the vectors specifying the ancient samples"
 		print "len(anc_pop) = %d, len(anc_per_pop) = %d, len(anc_time) = %d, len(split_time) = %d, len(NeAnc) = %d"%(len(anc_pop),len(anc_per_pop),len(anc_time),len(split_time),len(NeAnc))
 		return None
+	#make errors:
+	if error is None:
+		error = np.zeros(sum(anc_per_pop))
 	#make modern samples
 	samples = [msp.Sample(population=0,time=0)]*num_modern
 	anc_num = 0
@@ -105,7 +108,8 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 				reads[ind_num].append([None,None])
 				if coverage:
 					num_reads = st.poisson.rvs(coverage)
-					derived_reads = st.binom.rvs(num_reads, cur_GT/2.)
+					p_der = cur_GT/2.*(1-error[ind_num])+(1-cur_GT/2.)*error[ind_num]
+					derived_reads = st.binom.rvs(num_reads, p_der)
 					reads[ind_num][-1] = (num_reads-derived_reads,derived_reads)
 	return np.array(freq), GT, reads
 
@@ -120,7 +124,8 @@ def parse_reads(read_file_name,cutoff=0):
 	anc_indices = np.arange(1,len(inds_alleles),step=3)
 	inds = [x.split("_")[0] for x in inds_alleles[der_indices]]
 	reads = [[] for i in range(len(inds))]
-	for line in read_file:
+	for line_no, line in enumerate(read_file):
+		if line_no & 10000 == 0: print line_no
 		splitLine = line.strip().split()
 		read_counts = np.array(map(int,splitLine[3:]))
 		der_counts = read_counts[der_indices]
@@ -704,7 +709,7 @@ def optimize_pop_params_error(freq,reads,pops,detail=False):
 		print "Processing pop %d: %s"%(i, str(pops[i]))
 		num_ind_in_pop = len(read_lists[i][0][0])
 		params_init = np.hstack((st.uniform.rvs(size=2),st.uniform.rvs(size=num_ind_in_pop,scale=.1)))
-		e_bounds = np.transpose(np.vstack((np.full(num_ind_in_pop,0),np.full(num_ind_in_pop,.1))))
+		e_bounds = np.transpose(np.vstack((np.full(num_ind_in_pop,0),np.full(num_ind_in_pop,.2))))
 		bounds = np.vstack((t_bounds,e_bounds))
 		#TODO: MAKE SURE THE LIKELIHOOD IS CORRECT
 		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds, factr = 1, pgtol = 1e-15)
