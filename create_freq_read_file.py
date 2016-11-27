@@ -55,7 +55,7 @@ for i, SNP in enumerate(SNPs):
 	SNP_split = SNP.split()
 	chrom = SNP_split[1]
 	pos = int(SNP_split[3])
-	if i %% 1000 == 0: sys.stderr.write("%s %s"%(chrom, pos))
+	if i % 1000 == 0: sys.stderr.write("%s %s\n"%(chrom, pos))
 	for variant in vcf_files[int(chrom)].fetch(chrom, pos-1, pos):
 		if variant.pos != pos: break #for now, skip ones where any with the wrong pos are returned...
 		ref = variant.ref

@@ -665,7 +665,7 @@ def optimize_pop_params(freq,reads,pops,detail=False):
 			opts.append(None)
 			continue
 		print "Processing pop %d: %s"%(i,str(pops[i]))
-		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]],epsilon=.001)#, factr=10, pgtol=1e-10) 
+		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]])#,epsilon=.001, factr=10, pgtol=1e-10) 
 		opts.append(cur_opt)
 	return opts
 
