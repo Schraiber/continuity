@@ -684,15 +684,12 @@ def compute_GT_like_DP(reads,freq,t1,t2,precompute_read_prob,min_a,min_d,detail=
 	else:
 		n_diploid = len(reads[0][0])
 	n_haploid = 2*n_diploid
-	Ey = compute_Ey(freq,n_haploid,t1,t2)
-	sampling_prob = compute_sampling_probs(Ey)
+	sampling_prob = compute_Ehet(freq,n_haploid,t1,t2)
 	like_per_freq = []
 	for i in range(len(freq)):
 		read_prob_per_site = compute_all_read_like(reads[i],precompute_read_prob,min_a,min_d)
 		read_prob = read_prob_DP(read_prob_per_site)
 		like_per_freq.append(sum(np.log(np.dot(read_prob,sampling_prob[i]))))
-		#TODO: Figure out if there's any way to increase numerical stability
-		if np.isnan(like_per_freq[-1]): like_per_freq[-1] = -np.inf
 	if detail: print t1, t2, -sum(like_per_freq)
 	return like_per_freq
 
