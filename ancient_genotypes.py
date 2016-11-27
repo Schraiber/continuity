@@ -414,11 +414,11 @@ def precompute_read_like(min_a,max_a,min_d,max_d):
 #probably can be optmized by having a different min and max for each ind...
 def precompute_read_like_error(min_a,max_a,min_d,max_d,errors):
 	num_ind = len(errors)
-	read_like = np.zeros((num_ind,max_a-min_a+1,max_d-min_d+1,3))
+	read_like = np.zeros((max_a-min_a+1,max_d-min_d+1,num_ind,3))
 	p = np.array([errors,errors/2+(1-errors)/2,1-errors])
 	for a in range(min_a,max_a+1):
 		for d in range(min_d,max_d+1):
-			read_like[:,a-min_a,d-min_d,:] = np.transpose(st.binom.pmf(d,a+d,p))
+			read_like[a-min_a,d-min_d,:,:] = np.transpose(st.binom.pmf(d,a+d,p))
 	return read_like
 		
 
@@ -434,7 +434,8 @@ def compute_all_read_like(reads,precompute_like,min_a,min_d):
 	return read_likes
 
 def compute_all_read_like_error(reads,precompute_like,min_a,min_d):
-	read_likes = precompute_like[:,reads[:,:,0]-min_a,reads[:,:,1]-min_d,:]
+	ind_nums = np.arange(len(reads[0]))
+	read_likes = precompute_like[reads[:,ind_nums,0]-min_a,reads[:,ind_nums,1]-min_d,ind_nums,:]
 	return read_likes
 
 #NB: This expects the read likelihoods, 
@@ -704,6 +705,21 @@ def compute_GT_like_DP(reads,freq,t1,t2,precompute_read_prob,min_a,min_d,detail=
 	like_per_freq = []
 	for i in range(len(freq)):
 		read_prob_per_site = compute_all_read_like(reads[i],precompute_read_prob,min_a,min_d)
+		read_prob = read_prob_DP(read_prob_per_site)
+		like_per_freq.append(sum(np.log(np.dot(read_prob,sampling_prob[i]))))
+	if detail: print t1, t2, -sum(like_per_freq)
+	return like_per_freq
+
+def compute_GT_like_DP_error(reads,freq,t1,t2,precompute_read_prob,min_a,min_d,detail=False):
+	if reads[0][0].ndim == 1:
+		n_diploid = 1
+	else:
+		n_diploid = len(reads[0][0])
+	n_haploid = 2*n_diploid
+	sampling_prob = compute_Ehet(freq,n_haploid,t1,t2)
+	like_per_freq = []
+	for i in range(len(freq)):
+		read_prob_per_site = compute_all_read_like_error(reads[i],precompute_read_prob,min_a,min_d)
 		read_prob = read_prob_DP(read_prob_per_site)
 		like_per_freq.append(sum(np.log(np.dot(read_prob,sampling_prob[i]))))
 	if detail: print t1, t2, -sum(like_per_freq)
