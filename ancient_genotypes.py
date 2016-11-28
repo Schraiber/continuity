@@ -136,7 +136,7 @@ def parse_reads(read_file_name,cutoff=0):
 		if float(samples_with_reads)/len(inds) < cutoff: continue
 		freq.append(float(splitLine[2]))
 		for i in range(len(inds)):
-			reads[i].append((der_counts[i],anc_counts[i]))
+			reads[i].append((anc_counts[i],der_counts[i]))
 	return np.array(freq), reads, inds
 	
 
@@ -713,8 +713,8 @@ def optimize_pop_params_error(freq,reads,pops,detail=False):
 		e_bounds = np.transpose(np.vstack((np.full(num_ind_in_pop,0),np.full(num_ind_in_pop,.2))))
 		bounds = np.vstack((t_bounds,e_bounds))
 		#cur_opt = opt.fmin_cobyla(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, cons = lambda x: np.hstack((x,x[2:]-1)))
-		cur_opt = opt.fmin(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init)
-		#cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds, factr = 1, pgtol = 1e-15)
+		#cur_opt = opt.fmin(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init)
+		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
 		#cur_opt = opt.fmin_tnc(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
 		print cur_opt
 		opts.append(cur_opt)
