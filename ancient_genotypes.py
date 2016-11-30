@@ -126,7 +126,7 @@ def parse_reads(read_file_name,cutoff=0):
 	inds = [x.split("_")[0] for x in inds_alleles[der_indices]]
 	reads = [[] for i in range(len(inds))]
 	for line_no, line in enumerate(read_file):
-		if line_no & 10000 == 0: print line_no
+		if line_no % 10000 == 0: print line_no
 		splitLine = line.strip().split()
 		read_counts = np.array(map(int,splitLine[3:]))
 		der_counts = read_counts[der_indices]
@@ -136,7 +136,7 @@ def parse_reads(read_file_name,cutoff=0):
 		if float(samples_with_reads)/len(inds) < cutoff: continue
 		freq.append(float(splitLine[2]))
 		for i in range(len(inds)):
-			reads[i].append((der_counts[i],anc_counts[i]))
+			reads[i].append((anc_counts[i],der_counts[i]))
 	return np.array(freq), reads, inds
 	
 
@@ -694,7 +694,8 @@ def optimize_pop_params(freq,reads,pops,detail=False):
 			opts.append(None)
 			continue
 		print "Processing pop %d: %s"%(i,str(pops[i]))
-		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]])#,epsilon=.001, factr=10, pgtol=1e-10) 
+		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[0,10],[0,10]])#,epsilon=.001, factr=10, pgtol=1e-10) 
+		print cur_opt[0], cur_opt[1]
 		opts.append(cur_opt)
 	return opts
 
@@ -712,8 +713,10 @@ def optimize_pop_params_error(freq,reads,pops,detail=False):
 		params_init = np.hstack((st.uniform.rvs(size=2),st.uniform.rvs(size=num_ind_in_pop,scale=.1)))
 		e_bounds = np.transpose(np.vstack((np.full(num_ind_in_pop,0),np.full(num_ind_in_pop,.2))))
 		bounds = np.vstack((t_bounds,e_bounds))
-		#TODO: MAKE SURE THE LIKELIHOOD IS CORRECT
-		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds, factr = 1, pgtol = 1e-15)
+		#cur_opt = opt.fmin_cobyla(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, cons = lambda x: np.hstack((x,x[2:]-1)))
+		#cur_opt = opt.fmin(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init)
+		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
+		#cur_opt = opt.fmin_tnc(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
 		print cur_opt[0], cur_opt[1]
 		opts.append(cur_opt)
 	return opts	
@@ -758,6 +761,9 @@ def compute_GT_like_DP_error(reads,freq,t1,t2,precompute_read_prob,min_a,min_d,d
 	return like_per_freq
 
 def likelihood_error(reads,freq,t1,t2,error,min_a,max_a,min_d,max_d,detail=False):
+	if t1 < 0 or t2 < 0 or np.any(error<0) or np.any(error>1): 
+		if detail: print t1, t2, 1e300
+		return -1e300
 	read_probs = precompute_read_like_error(min_a,max_a,min_d,max_d,error)
 	if detail > 1: print error
 	return compute_GT_like_DP_error(reads,freq,t1,t2,read_probs,min_a,min_d,detail=detail)
