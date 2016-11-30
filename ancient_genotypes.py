@@ -694,7 +694,8 @@ def optimize_pop_params(freq,reads,pops,detail=False):
 			opts.append(None)
 			continue
 		print "Processing pop %d: %s"%(i,str(pops[i]))
-		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[.00001,10],[.00001,10]])#,epsilon=.001, factr=10, pgtol=1e-10) 
+		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[0,10],[0,10]])#,epsilon=.001, factr=10, pgtol=1e-10) 
+		print cur_opt[0], cur_opt[1]
 		opts.append(cur_opt)
 	return opts
 
@@ -716,7 +717,7 @@ def optimize_pop_params_error(freq,reads,pops,detail=False):
 		#cur_opt = opt.fmin(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init)
 		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
 		#cur_opt = opt.fmin_tnc(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
-		print cur_opt
+		print cur_opt[0], cur_opt[1]
 		opts.append(cur_opt)
 	return opts	
 
