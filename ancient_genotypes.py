@@ -10,6 +10,7 @@ import itertools
 from copy import deepcopy
 from numpy import random as rn
 import sklearn.cluster as cl
+from joblib import Parallel, delayed
 
 class FreqError(Exception):
 	pass
@@ -54,7 +55,7 @@ def ancient_sample_mix_multiple(num_modern=1000,anc_pop = 0, anc_num = 1, anc_ti
 
 #NB: This function does not support admixture
 #NB: This function models a very simple structure where all pops are splits off of a long ancestral lineage
-def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], anc_time=[200],split_time=[400],Ne0=10000,NeAnc=[10000],mu=1.25e-8,length=1000,num_rep=1000,coverage=False, error=None):
+def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], anc_time=[200],split_time=[400],Ne0=10000,NeAnc=[10000],mu=1.25e-8,length=1000,num_rep=1000,coverage=False, error=None, seed=None):
 	if not (len(anc_pop) == len(anc_per_pop) == len(anc_time) == len(split_time) == len(NeAnc)):
 		print "There are an unequal number of elements in the vectors specifying the ancient samples"
 		print "len(anc_pop) = %d, len(anc_per_pop) = %d, len(anc_time) = %d, len(split_time) = %d, len(NeAnc) = %d"%(len(anc_pop),len(anc_per_pop),len(anc_time),len(split_time),len(NeAnc))
@@ -80,12 +81,13 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 		if cur_pop == 0: continue #Hack to just avoid fucking up things for dudes in the first pop
 		split_times[cur_pop] = split_time[i]
 		Ne[cur_pop] = NeAnc[i]	
+	print Ne, split_times
 	pop_config = [msp.PopulationConfiguration(initial_size=Ne[0])]
 	divergence = []
 	for pop in range(1,len(split_times)):
 		pop_config.append(msp.PopulationConfiguration(initial_size=Ne[pop]))
 		divergence.append(msp.MassMigration(time=split_times[pop],source=pop,destination=0,proportion=1.0))
-	sims = msp.simulate(samples=samples,Ne=Ne[0],population_configurations=pop_config,demographic_events=divergence,mutation_rate=mu,length=length,num_replicates=num_rep)
+	sims = msp.simulate(samples=samples,Ne=Ne[0],population_configurations=pop_config,demographic_events=divergence,mutation_rate=mu,length=length,num_replicates=num_rep,random_seed=seed)
 	freq = []
 	reads = []
 	GT = []
@@ -703,7 +705,7 @@ def optimize_pop_params_error(freq,reads,pops,detail=False):
 	min_a, max_a, min_d, max_d = get_bounds_reads(reads)
 	freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
 	opts = []
-	t_bounds = np.array(((0,10),(0,10)))
+	t_bounds = np.array(((1e-10,10),(1e-10,10)))
 	for i in range(len(pops)):
 		if np.array_equal(pops[i],[]):
 			opts.append(None)
@@ -711,7 +713,7 @@ def optimize_pop_params_error(freq,reads,pops,detail=False):
 		print "Processing pop %d: %s"%(i, str(pops[i]))
 		num_ind_in_pop = len(read_lists[i][0][0])
 		params_init = np.hstack((st.uniform.rvs(size=2),st.uniform.rvs(size=num_ind_in_pop,scale=.1)))
-		e_bounds = np.transpose(np.vstack((np.full(num_ind_in_pop,0),np.full(num_ind_in_pop,.2))))
+		e_bounds = np.transpose(np.vstack((np.full(num_ind_in_pop,1e-10),np.full(num_ind_in_pop,.2))))
 		bounds = np.vstack((t_bounds,e_bounds))
 		#cur_opt = opt.fmin_cobyla(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, cons = lambda x: np.hstack((x,x[2:]-1)))
 		#cur_opt = opt.fmin(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init)
@@ -720,6 +722,23 @@ def optimize_pop_params_error(freq,reads,pops,detail=False):
 		print cur_opt[0], cur_opt[1]
 		opts.append(cur_opt)
 	return opts	
+
+def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail):
+	t_bounds = np.array(((1e-10,10),(1e-10,10)))
+	num_ind_in_pop = len(r[0][0])
+	params_init = np.hstack((st.uniform.rvs(size=2),st.uniform.rvs(size=num_ind_in_pop,scale=.1)))
+	e_bounds = np.transpose(np.vstack((np.full(num_ind_in_pop,1e-10),np.full(num_ind_in_pop,.2))))
+	bounds = np.vstack((t_bounds,e_bounds))	
+	cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
+	print cur_opt[0], cur_opt[1]
+	return cur_opt
+
+
+def optimize_pop_params_error_parallel(freq,reads,pops,num_core = 1, detail=False):
+	min_a, max_a, min_d, max_d = get_bounds_reads(reads)
+	freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
+	opts = Parallel(n_jobs=num_core)(delayed(optimize_single_pop_thread)(r, freqs, min_a, max_a, min_d, max_d, detail) for r in read_lists)
+	return opts
 
 def optimize_params_one_pop(freq,reads,pop,detail=False):
 	all_inds = set(range(len(reads)))
