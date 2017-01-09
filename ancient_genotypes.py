@@ -279,6 +279,14 @@ def expected_moments_split(x0,t1,t2):
 	Eanc = 1.0  - Ehet - Eder
 	return Eanc, Ehet, Eder
 
+def get_numbers_from_dict(anc_dict):
+	het = []
+	hom = []
+	for freq in sorted(anc_dict.keys()):
+		het.append(anc_dict[freq][1])
+		hom.append(anc_dict[freq][2])
+	return np.array(het), np.array(hom)
+
 #freqs, het, hom should be FIXED, determiend by data
 def het_hom_likelihood_anc(t,freqs,het,hom):
 	#check if 0 or 1 in freqs
@@ -308,7 +316,7 @@ def test_and_plot(anc_dict,x0Anc = st.uniform.rvs(size=1), x0Split = st.uniform.
 		hetAnc = expected_het_anc(freqs,ancTest[0][0])
 		hetSplit = expected_het_split(freqs,splitTest[0][0],splitTest[0][1])
 		plt.plot(freqs,het/(het+hom),'o',label="data")
-		plt.plot(freqs,hetAnc,'r',label="anc, t = %f"%tAnc)
+		plt.plot(freqs,hetAnc,'r',label="anc, t = %0.2f"%tAnc)
 		plt.plot(freqs,hetSplit,'y',label="split, t1 = %0.2f t2 = %0.2f"%(t1,t2))
 		plt.xlabel("Frequency")
 		plt.ylabel("Proportion of het sites")
