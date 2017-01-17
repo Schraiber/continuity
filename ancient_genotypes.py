@@ -701,11 +701,14 @@ def optimize_pop_params(freq,reads,pops,detail=False):
 		opts.append(cur_opt)
 	return opts
 
-def optimize_pop_params_error(freq,reads,pops,detail=False):
+def optimize_pop_params_error(freq,reads,pops,continuity=False,detail=False):
 	min_a, max_a, min_d, max_d = get_bounds_reads(reads)
 	freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
 	opts = []
-	t_bounds = np.array(((1e-10,10),(1e-10,10)))
+	if continuity:
+		t_bounds = np.array((1e-10,10))
+	else:
+		t_bounds = np.array(((1e-10,10),(1e-10,10)))
 	for i in range(len(pops)):
 		if np.array_equal(pops[i],[]):
 			opts.append(None)
@@ -715,10 +718,11 @@ def optimize_pop_params_error(freq,reads,pops,detail=False):
 		params_init = np.hstack((st.uniform.rvs(size=2),st.uniform.rvs(size=num_ind_in_pop,scale=.1)))
 		e_bounds = np.transpose(np.vstack((np.full(num_ind_in_pop,1e-10),np.full(num_ind_in_pop,.2))))
 		bounds = np.vstack((t_bounds,e_bounds))
-		#cur_opt = opt.fmin_cobyla(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, cons = lambda x: np.hstack((x,x[2:]-1)))
-		#cur_opt = opt.fmin(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init)
-		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
-		#cur_opt = opt.fmin_tnc(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
+		if continuity:
+			params_init = np.delete(params_init, 1)
+			cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],0,x[1:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
+		else:
+			cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
 		print cur_opt[0], cur_opt[1]
 		opts.append(cur_opt)
 	return opts	
