@@ -81,7 +81,6 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 		if cur_pop == 0: continue #Hack to just avoid fucking up things for dudes in the first pop
 		split_times[cur_pop] = split_time[i]
 		Ne[cur_pop] = NeAnc[i]	
-	print Ne, split_times
 	pop_config = [msp.PopulationConfiguration(initial_size=Ne[0])]
 	divergence = []
 	for pop in range(1,len(split_times)):
