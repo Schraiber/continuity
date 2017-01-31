@@ -734,21 +734,28 @@ def optimize_pop_params_error(freq,reads,pops,continuity=False,detail=False):
 		opts.append(cur_opt)
 	return opts	
 
-def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail):
-	t_bounds = np.array(((1e-10,10),(1e-10,10)))
+def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail = False, continuity=False):
+	if continuity:
+		t_bounds = np.array((1e-10,10))
+	else:
+		t_bounds = np.array(((1e-10,10),(1e-10,10)))
 	num_ind_in_pop = len(r[0][0])
 	params_init = np.hstack((st.uniform.rvs(size=2),st.uniform.rvs(size=num_ind_in_pop,scale=.1)))
 	e_bounds = np.transpose(np.vstack((np.full(num_ind_in_pop,1e-10),np.full(num_ind_in_pop,.2))))
 	bounds = np.vstack((t_bounds,e_bounds))	
-	cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
+	if continuity:
+		params_init = np.delete(params_init, 1)
+		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],0,x[1:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
+	else:
+		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
 	print cur_opt[0], cur_opt[1]
 	return cur_opt
 
 
-def optimize_pop_params_error_parallel(freq,reads,pops,num_core = 1, detail=False):
+def optimize_pop_params_error_parallel(freq,reads,pops,num_core = 1, detail=False, continuity=False):
 	min_a, max_a, min_d, max_d = get_bounds_reads(reads)
 	freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
-	opts = Parallel(n_jobs=num_core)(delayed(optimize_single_pop_thread)(r, freqs, min_a, max_a, min_d, max_d, detail) for r in read_lists)
+	opts = Parallel(n_jobs=num_core)(delayed(optimize_single_pop_thread)(r, freqs, min_a, max_a, min_d, max_d, detail, continuity) for r in read_lists)
 	return opts
 
 def optimize_params_one_pop(freq,reads,pop,detail=False):
