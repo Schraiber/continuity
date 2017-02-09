@@ -11,6 +11,7 @@ from copy import deepcopy
 from numpy import random as rn
 import sklearn.cluster as cl
 from joblib import Parallel, delayed
+import pandas
 
 class FreqError(Exception):
 	pass
@@ -804,3 +805,19 @@ def likelihood_error(reads,freq,t1,t2,error,min_a,max_a,min_d,max_d,detail=False
 	read_probs = precompute_read_like_error(min_a,max_a,min_d,max_d,error)
 	if detail > 1: print error
 	return compute_GT_like_DP_error(reads,freq,t1,t2,read_probs,min_a,min_d,detail=detail)
+
+def read_inds_pops(reads_file,ind_file):
+	reads = open(reads_file)
+	header = reads.readline()
+	reads.close()
+	headerSplit = header.strip().split()
+        inds_alleles = np.array(headerSplit[3:])
+        der_indices = np.arange(len(inds_alleles),step=3)
+        anc_indices = np.arange(1,len(inds_alleles),step=3)
+        inds = [x.split("_")[0] for x in inds_alleles[der_indices]]
+	inds_pops = pandas.read_table(ind_file,delim_whitespace=True,header=None)
+	unique_pops = np.unique(inds_pops[ [ind in inds for ind in inds_pops[0]] ][[2]])
+	label_names = [inds_pops[inds_pops[0] == ind][2].values for ind in inds]
+	label = [int(np.where(name == unique_pops)[0]) for name in label_names]
+	pops = [list(np.where(np.array(label)==i)[0]) for i in range(len(unique_pops))]
+	return unique_pops, label_names, label, pops, inds
