@@ -1,0 +1,48 @@
+\begin{figure}[h] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=.9\textwidth]{backward_forward_v2.pdf}
+\caption{The generative model. Alleles are found at frequency $x$ in the modern population and are at frequency $y$ in the ancient population. The modern population has effective size $N_e^{(1)}$ and has evolved for $\tau_1$ generations since the common ancestor of the modern and ancient populations, while the ancient population is of size $N_e^{(2)}$ and has evolved for $\tau_2$ generations. Ancient diploid samples are taken and sequenced to possibly low coverage, with errors. Arrows indicate that the sampling probability can be calculated by evolving alleles \emph{backward} in time from the modern population and then forward in time to the ancient population.}
+\label{generative_model}
+\end{figure}
+\efloatseparator
+ 
+\begin{figure}[h] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=\textwidth]{RMSE_Figure.pdf}
+   \caption{Impact of sampling scheme on parameter estimation error. In each panel, the $x$ axis represents the number of simulated ancient samples, while the $y$ axis shows the relative root mean square error for each parameter. Each different line corresponds to individuals sequenced to different depth of coverage. Panel A shows results for $t_1$ while panel B shows results for $t_2$. Simulated parameters are $t_1 = 0.02$ and $t_2 = 0.05$.}
+   \label{RMSE}
+\end{figure}
+\efloatseparator
+ 
+\begin{figure}[h] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=\textwidth]{continuity_rejection.pdf}
+   \caption{Impact of sampling scheme on rejecting population continuity. The $x$ axis represents the age of the ancient sample in generations, with 0 indicating a modern sample and 400 indicating a sample from exactly at the split time 400 generations ago. The $y$ axis shows the proportion of simulations in which we rejected the null hypothesis of population continuity. Each line shows different sampling schemes, as explained in the legend.}
+   \label{continuity}
+\end{figure}
+\efloatseparator
+ 
+\begin{figure}[h] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=.8\textwidth]{parameters_and_age.pdf}
+   \caption{Parameters of the model inferred from ancient West Eurasian samples. Panel A shows $t_1$ on the x-axis and $t_2$ on the y-axis, with each point corresponding to a population as indicated in the legend. Numbers in the legend correspond to the mean date of all samples in the population. Panels B and C show scatterplots of the mean age of the samples in the population (x-axis) against $t_1$ and $t_2$, respectively. Points are described by the same legend as Panel A.}
+   \label{pops_together}
+\end{figure}
+\efloatseparator
+ 
+\begin{figure}[h] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=\textwidth]{error_hist_and_scatter_vs_coverage.pdf}
+   \caption{Properties of sequencing error inferred from ancient samples. Panel A shows a histogram of error rates estimated across all samples. Panel B is a scatterplot of coverage (x-axis) against inferred error rate (y-axis) for all individuals, except two individuals for whom an error rate of 0 was estimated.}
+   \label{error_fig}
+\end{figure}
+\efloatseparator
+ 
+\begin{figure}[h] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=\textwidth]{sep_vs_pops.pdf}
+   \caption{Impact of pooling individuals into populations when estimating model parameters. In both panels, the x-axis indicates the parameter estimate when individuals are analyzed separately, while the y-axis indicates the parameter estimate when individuals are grouped into populations. Panel A reports the impact on estimation of $t_1$, while Panel B reports the impact on $t_2$. Note that Panel B has a broken x-axis. Solid lines in each figure indicate $y = x$.}
+   \label{sep_vs_pops}
+\end{figure}
+\efloatseparator
+ 
