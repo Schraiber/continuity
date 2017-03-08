@@ -114,33 +114,7 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 					p_der = cur_GT/2.*(1-error[ind_num])+(1-cur_GT/2.)*error[ind_num]
 					derived_reads = st.binom.rvs(num_reads, p_der)
 					reads[ind_num][-1] = (num_reads-derived_reads,derived_reads)
-	return np.array(freq), GT, reads
-
-def parse_reads(read_file_name,cutoff=0):
-	read_file = open(read_file_name)
-	freq = []
-	samples = []
-	header = read_file.readline()
-	headerSplit = header.strip().split()
-	inds_alleles = np.array(headerSplit[3:])
-	der_indices = np.arange(len(inds_alleles),step=3)
-	anc_indices = np.arange(1,len(inds_alleles),step=3)
-	inds = [x.split("_")[0] for x in inds_alleles[der_indices]]
-	reads = [[] for i in range(len(inds))]
-	for line_no, line in enumerate(read_file):
-		if line_no % 10000 == 0: print line_no
-		splitLine = line.strip().split()
-		read_counts = np.array(map(int,splitLine[3:]))
-		der_counts = read_counts[der_indices]
-		anc_counts = read_counts[anc_indices]
-		sample_has_reads = (der_counts > 0) | (anc_counts > 0)
-		samples_with_reads = sum(sample_has_reads)
-		if float(samples_with_reads)/len(inds) < cutoff: continue
-		freq.append(float(splitLine[2]))
-		for i in range(len(inds)):
-			reads[i].append((anc_counts[i],der_counts[i]))
-	return np.array(freq), reads, inds
-	
+	return np.array(freq), GT, reads	
 
 #Writes a beagle genotype likelihood file for data from the simulations
 #NB: simulates modern individuals from the allele frequencies and HW equilibrium
@@ -168,53 +142,87 @@ def write_beagle_output(freq, reads, file_name, num_modern = 100):
 		outfile.write("\n")			
 	outfile.close()
 
-def get_het_prob_old(freq,GT):
-	anc_dict_list = []
-	num_ind = len(GT[0])
-	for ind in range(num_ind):
-		anc_dict_list.append({})
-	for i in range(len(freq)):
-		for ind in range(num_ind):
-			if freq[i] in anc_dict_list[ind]:
-				anc_dict_list[ind][freq[i]][GT[i][ind]] += 1.0
-			else:
-				anc_dict_list[ind][freq[i]] = np.array([0.0,0.0,0.0])
-				anc_dict_list[ind][freq[i]][GT[i][ind]] += 1.0
-	unique_freqs = sorted(np.unique(freq))
-	pHet = []
-	for ind in range(num_ind):
-		pHet.append([])
-		for i in range(len(unique_freqs)):
-			cur_anc = anc_dict_list[ind][unique_freqs[i]]
-			try:
-				pHet[-1].append(cur_anc[1]/(cur_anc[1]+cur_anc[2]))
-			except ZeroDivisionError:
-				pHet[-1].append(None)
-	return np.array(unique_freqs), np.array(pHet), anc_dict_list
+def get_inds_pops(reads_file,ind_file):
+	reads = open(reads_file)
+	header = reads.readline()
+	reads.close()
+	headerSplit = header.strip().split()
+        inds_alleles = np.array(headerSplit[3:])
+        der_indices = np.arange(len(inds_alleles),step=3)
+        anc_indices = np.arange(1,len(inds_alleles),step=3)
+        inds = [x.split("_")[0] for x in inds_alleles[der_indices]]
+	inds_pops = pandas.read_table(ind_file,delim_whitespace=True,header=None)
+	unique_pops = np.unique(inds_pops[ [ind in inds for ind in inds_pops[0]] ][[2]])
+	label_names = [inds_pops[inds_pops[0] == ind][2].values for ind in inds]
+	label = [int(np.where(name == unique_pops)[0]) for name in label_names]
+	pops = [list(np.where(np.array(label)==i)[0]) for i in range(len(unique_pops))]
+	return unique_pops, label_names, label, pops, inds
 
-def get_het_prob(freq,GT):
-	anc_dict_list = []
-	num_ind = len(GT)
-	for ind in range(num_ind):
-		anc_dict_list.append({})
-	for i in range(len(freq)):
-		for ind in range(num_ind):
-			if freq[i] in anc_dict_list[ind]:
-				anc_dict_list[ind][freq[i]][GT[ind][i]] += 1.0
+def parse_reads(read_file_name,cutoff=0):
+	read_file = open(read_file_name)
+	freq = []
+	samples = []
+	header = read_file.readline()
+	headerSplit = header.strip().split()
+	inds_alleles = np.array(headerSplit[3:])
+	der_indices = np.arange(len(inds_alleles),step=3)
+	anc_indices = np.arange(1,len(inds_alleles),step=3)
+	inds = [x.split("_")[0] for x in inds_alleles[der_indices]]
+	reads = [[] for i in range(len(inds))]
+	for line_no, line in enumerate(read_file):
+		if line_no % 10000 == 0: print line_no
+		splitLine = line.strip().split()
+		read_counts = np.array(map(int,splitLine[3:]))
+		der_counts = read_counts[der_indices]
+		anc_counts = read_counts[anc_indices]
+		sample_has_reads = (der_counts > 0) | (anc_counts > 0)
+		samples_with_reads = sum(sample_has_reads)
+		if float(samples_with_reads)/len(inds) < cutoff: continue
+		freq.append(float(splitLine[2]))
+		for i in range(len(inds)):
+			reads[i].append((anc_counts[i],der_counts[i]))
+	return np.array(freq), reads, inds
+
+#pops is a list of lists of inds to put into pops
+#e.g. [[0,3],[1,2]] says put inds 0 and 3 in pop 1, inds 1 and 2 in pop 2 
+def parse_reads_by_pop(read_file_name,label,cutoff=0):
+	read_file = open(read_file_name)
+	header = read_file.readline()
+	headerSplit = header.strip().split()
+	inds_alleles = np.array(headerSplit[3:]) #TODO: Make all these have variable start indices so that it can handle k, n
+	der_indices = np.arange(len(inds_alleles),step=3)
+	anc_indices = np.arange(1,len(inds_alleles),step=3)
+	inds = [x.split("_")[0] for x in inds_alleles[der_indices]]
+	read_dicts = [{} for i in range(max(label)+1)]
+	for line_no, line in enumerate(read_file):
+		if line_no % 10000 == 0: print line_no
+		splitLine = line.strip().split()
+		read_counts = np.array(map(int,splitLine[3:])) #TODO: Make this so it can handle either counts or k, n by making the first index a variable
+		der_counts = read_counts[der_indices]
+		anc_counts = read_counts[anc_indices]
+		sample_has_reads = (der_counts > 0) | (anc_counts > 0)
+		samples_with_reads = sum(sample_has_reads)
+		if float(samples_with_reads)/len(inds) < cutoff: continue
+		cur_freq = float(splitLine[2]) #TODO: Generalize to n, k
+		reads_per_pop = [[] for i in range(max(label)+1)]
+		for i in range(len(inds)):
+			cur_pop = label[i]
+			cur_counts = (anc_counts[i], der_counts[i])
+			reads_per_pop[cur_pop].append(cur_counts)
+		for i in range(max(label)+1):
+			if cur_freq in read_dicts[i]:
+				read_dicts[i][cur_freq].append(np.array(reads_per_pop[i]))
 			else:
-				anc_dict_list[ind][freq[i]] = np.array([0.0,0.0,0.0])
-				anc_dict_list[ind][freq[i]][GT[ind][i]] += 1.0
-	unique_freqs = sorted(np.unique(freq))
-	pHet = []
-	for ind in range(num_ind):
-		pHet.append([])
-		for i in range(len(unique_freqs)):
-			cur_anc = anc_dict_list[ind][unique_freqs[i]]
-			try:
-				pHet[-1].append(cur_anc[1]/(cur_anc[1]+cur_anc[2]))
-			except ZeroDivisionError:
-				pHet[-1].append(None)
-	return np.array(unique_freqs), np.array(pHet), anc_dict_list
+				read_dicts[i][cur_freq] = [np.array(reads_per_pop[i])]
+	freqs = sorted(read_dicts[0])
+	print map(len,read_dicts)
+	read_lists = []
+	for i in range(len(read_dicts)):
+		read_lists.append([])
+		for freq in freqs:
+			read_lists[-1].append(np.array(read_dicts[i][freq]))
+	return freqs, read_lists
+
 
 #read_dict is a list of arrays, sorted by freq
 ##the first level corresponds to the freqs in freq
@@ -265,121 +273,6 @@ def make_read_dict_by_pop(freq,reads,pops):
 			read_lists[-1].append(np.array(read_dicts[i][freq]))
 	return freqs, read_lists
 
-
-
-def expected_het_anc(x0,t):
-	return 1.0/(3.0/2.0+(2*x0-1)/(1+np.exp(2*t)-2*x0))
-
-def expected_het_split(x0,t1,t2):
-	return 1.0/(1.0/2.0+(np.exp(2*t1+t2))/(1+np.exp(2*t1)-2*x0))
-
-def expected_moments_split(x0,t1,t2):
-	Ehet = np.exp(-3.*t1-t2)*(1.+np.exp(2.*t1)-2.*x0)*x0
-	Eder = 1./2.*np.exp(-3.*t1-t2)*(2.*x0+np.exp(2.*t1)*(2.*np.exp(t2)-1.)-1.)*x0
-	Eanc = 1.0  - Ehet - Eder
-	return Eanc, Ehet, Eder
-
-def get_numbers_from_dict(anc_dict):
-	het = []
-	hom = []
-	for freq in sorted(anc_dict.keys()):
-		het.append(anc_dict[freq][1])
-		hom.append(anc_dict[freq][2])
-	return np.array(het), np.array(hom)
-
-#freqs, het, hom should be FIXED, determiend by data
-def het_hom_likelihood_anc(t,freqs,het,hom):
-	#check if 0 or 1 in freqs
-	if 0 in freqs or 1 in freqs:
-		raise FreqError("Remove sites that are monomophric in modern population")
-	pHetExpect = expected_het_anc(freqs,t)
-	likeVec = het*np.log(pHetExpect)+hom*np.log(1-pHetExpect)
-	return(sum(likeVec))
-	
-#freqs, het, hom should be FIXED, determiend by data
-def het_hom_likelihood_split(t1,t2,freqs,het,hom):
-	if 0 in freqs or 1 in freqs:
-		raise FreqError("Remove sites that are monomophric in modern population")
-	pHetExpect = expected_het_split(freqs,t1,t2)
-	likeVec = het*np.log(pHetExpect)+hom*np.log(1-pHetExpect)
-	return(sum(likeVec))
-
-def test_and_plot(anc_dict,x0Anc = st.uniform.rvs(size=1), x0Split = st.uniform.rvs(size=2),plot=True,title=""):
-	het,hom = get_numbers_from_dict(anc_dict)
-	freqs = np.sort(anc_dict.keys())
-	ancTest = opt.fmin_l_bfgs_b(func=lambda x: -het_hom_likelihood_anc(x[0],freqs,het,hom), x0 = x0Anc, approx_grad=True,bounds=[[.0001,1000]],factr=10,pgtol=1e-15)
-	splitTest = opt.fmin_l_bfgs_b(func=lambda x: -het_hom_likelihood_split(x[0],x[1],freqs,het,hom), x0 = x0Split, approx_grad=True,bounds=[[.0001,100],[.0001,100]],factr=10,pgtol=1e-15)
-	if plot:
-		tAnc = ancTest[0][0]
-		t1 = splitTest[0][0]
-		t2 = splitTest[0][1]
-		hetAnc = expected_het_anc(freqs,ancTest[0][0])
-		hetSplit = expected_het_split(freqs,splitTest[0][0],splitTest[0][1])
-		plt.plot(freqs,het/(het+hom),'o',label="data")
-		plt.plot(freqs,hetAnc,'r',label="anc, t = %0.2f"%tAnc)
-		plt.plot(freqs,hetSplit,'y',label="split, t1 = %0.2f t2 = %0.2f"%(t1,t2))
-		plt.xlabel("Frequency")
-		plt.ylabel("Proportion of het sites")
-		plt.legend()
-		plt.title(title)
-	return ancTest,splitTest
-
-def generate_genotypes(n):
-	n -= 1 #NB: This is just because Python is dumb about what n means
-	GTs = [[0],[1],[2]]
-	for i in range(n):
-		newGTs = []
-		for GT in GTs:
-			for j in (0,1,2):	
-				newGT = cp.deepcopy(GT)
-				newGT.append(j)
-				newGTs.append(newGT)
-		GTs = newGTs
-	return np.array(GTs)
-
-def generate_Q(n):
-	Q = np.zeros((n,n))
-	#NB: indexing is weird b/c Python. 
-	#In 1-offset, Qii = -i*(i-1)/2, Qi,i-1 = i*(i-1)/2
-	for i in range(1,n+1):
-		Q[i-1,i-1] = -i*(i-1)/2
-		Q[i-1,i-2] = i*(i-1)/2
-	return Q
-
-def generate_Qd(n):
-	Q = np.zeros((n,n))
-	for i in range(1,n+1):
-		Q[i-1,i-1] = -i*(i+1)/2
-		Q[i-1,i-2] = i*(i-1)/2
-	return Q
-
-#NB: Should be freq PER locus
-def generate_x(freq,n):
-	pows = range(1,n+1)
-	xMat = np.array(map(lambda x: np.array(x)**pows,freq))
-	return np.transpose(xMat)
-
-def compute_Ey(freq,n,t1,t2):
-	Qd = generate_Qd(n)
-	Q = generate_Q(n)
-	x = generate_x(freq,n)
-	backward = expma(Qd*t1,x)
-	Ey = np.vstack((np.ones(len(freq)),expma(Q*t2,backward)))
-	return Ey
-
-#NB: this does NOT include the combinatorial constant 
-def compute_sampling_probs(Ey):
- 	n = Ey.shape[0]-1 #NB: number of haploids, -1 because of the row of 1s at the top...
-	numFreq = Ey.shape[1]
-	probs = []
-	for j in range(numFreq):
-		probs.append([])
-		for k in np.arange(n+1): #all possible freqs, including 0 and 1
-		 	i = np.arange(0,n-k+1)
-			cur_prob = (-1)**i*sp.binom(n-k,i)*Ey[i+k,j]
-			cur_prob = np.sum(cur_prob)
-			probs[-1].append(cur_prob)
-	return np.array(probs)
 
 #NB: includes k = 0 case
 def generate_Qd_het(n):
@@ -475,265 +368,6 @@ def read_prob_DP(read_likes):
 	h = z[:,num_ind-1,:]	
 	return h
 
-############################################################################
-###########PARTITION########################################################
-#CODE IS FROM http://jeromekelleher.net/generating-integer-partitions.html
-def partition(n):
-    a = [0 for i in range(n + 1)]
-    k = 1
-    y = n - 1
-    while k != 0:
-        x = a[k - 1] + 1
-        k -= 1
-        while 2 * x <= y:
-            a[k] = x
-            y -= x
-            k += 1
-        l = k + 1
-        while x <= y:
-            a[k] = x
-            a[l] = y
-            yield a[:k + 2]
-            x += 1
-            y -= 1
-        a[k] = x + y
-        y = x + y - 1
-        yield a[:k + 1]
-
-#CODE IS FROM http://stackoverflow.com/a/19369410
-def slice_by_lengths(lengths, the_list):
-    for length in lengths:
-        new = []
-        for i in range(length):
-            new.append(the_list.pop(0))
-        yield new
-
-def partitions(my_list):
-    partitions = partition(len(my_list))
-    permed = []
-    for each_partition in partitions:
-        permed.append(set(itertools.permutations(each_partition, len(each_partition))))
-
-    for each_tuple in itertools.chain(*permed):
-        yield list(slice_by_lengths(each_tuple, deepcopy(my_list)))
-#########################################################################
-########################################################################
-
-#This wasnts the "raw" reads data
-def find_best_config(freq,reads,detail=False):
-	num_ind = len(reads)
-	pars = []
-	lnL = []
-	parts = []
-	for partition in partitions(range(num_ind)):
-		print "Processing %s"%partition
-		cur_opt = optimize_pop_params(freq,reads,partition,detail=detail)	
-		cur_lnL = sum(map(lambda x: x[1],cur_opt))
-		cur_pars = map(lambda x: x[0], cur_opt)
-		parts.append(partition)
-		lnL.append(cur_lnL)
-		pars.append(cur_pars)
-		print 2*(2*len(partition))+cur_lnL
-	return parts, lnL, pars
-
-#TODO: This does not guarantee that the number of clusters remains at k
-#TODO: Probably need to implement a proper EM algorithm
-#TODO: Proper EM might be hard. 
-#TODO: Maybe just hack so that if one cluster gets empty, you pop a dude out?
-def cluster_anc(freq,reads,k,num_iter=10, detail=False):
-	num_ind = len(reads)
-	all_separate_pops = []
-	for i in range(num_ind):
-		all_separate_pops.append([i])
-	opts_separate = optimize_pop_params(freq,reads,all_separate_pops,detail=detail)
-	lnL_separate = map(lambda x: x[1],opts_separate)
-	freqs, reads_per_ind = make_read_dict_by_pop(freq,reads,all_separate_pops)
-	min_a, min_d, read_prob = bound_and_precompute_read_like(reads)
-	first_inds = rn.choice(num_ind,k)
-	params = [o[0] for o in np.array(opts_separate)[first_inds]]
-	pop_labels = np.zeros(num_ind)
-	for i in range(num_iter):
-		indLnLBest = []
-		for j in range(num_ind):
-			indLnL = np.full(k,-np.inf)
-			for l in range(k):
-				indLnL[l] = sum(compute_GT_like_DP(reads_per_ind[j],freqs, params[l][0],params[l][1],read_prob,min_a,min_d,detail=False))
-			pop_labels[j] = np.argmax(indLnL)
-			indLnLBest.append(-indLnL[pop_labels[j]])
-		new_pops = np.array([np.where(pop_labels==i)[0].tolist() for i in range(k)])
-		#this should make sure that every pop has a dude in it
-		for p,pop in enumerate(new_pops):
-			if np.array_equal(pop,[]):
-				new_guy = np.argmax(np.array(indLnLBest)-np.array(lnL_separate))
-				new_pops[pop_labels[new_guy]].remove(new_guy)
-				new_pops[p] = [new_guy]
-				indLnLBest[new_guy] = lnL_separate[new_guy]
-		#if i > 1 and new_pops == pops: break
-		pops = new_pops
-		print pop_labels, pops
-		opts = optimize_pop_params(freq,reads,pops,detail=detail)
-		params = [o[0] if o else None for o in opts]
-	return opts, pops
-
-def chunk(num_ind,k):
-	seq = range(num_ind)
-	rn.shuffle(seq)
-	avg = num_ind/float(k)
-	out = []
-	last = 0.0
-	while last < num_ind:
-		out.append(sorted(seq[int(last):int(last+avg)]))
-		last += avg
-	return out
-
-def cluster_k(freq, reads, k, num_iter=10, initialize = "random", detail=False):
-	num_ind = len(reads)
-	if initialize is "random":
-		first_inds = rn.choice(num_ind,k)
-		cur_pops = chunk(num_ind,k)
-	elif initialize is "kmeans":
-		all_separate = [[i] for i in range(num_ind)]
-		sep_opts = optimize_pop_params(freq,reads,all_separate,detail=detail)
-		pars = np.array(map(lambda x: x[0], sep_opts))
-		kmeans = cl.KMeans(n_clusters=k).fit(pars)
-		labels = kmeans.labels_
-		cur_pops = [[] for i in range(k)]
-		for i in range(len(labels)):
-			cur_pops[labels[i]].append(i)
-				
-	else:
-		print "Unknown initialization procedure"
-		return 0
-	cur_opts = optimize_pop_params(freq,reads,cur_pops,detail=detail)
-	calculated = {}
-	for i in range(len(cur_pops)):
-		calculated[tuple(cur_pops[i])] = cur_opts[i]
-	print cur_pops, sum(map(lambda x: x[1], cur_opts))
-	for i in range(num_iter):
-		for ind in range(num_ind):
-			best_lamb = 0
-			best_pop = []
-			old_pop = map(lambda x: ind in x, cur_pops).index(True)
-			if len(cur_pops[old_pop]) == 1: continue
-			cur_minus = list(cur_pops[old_pop])
-			cur_minus.remove(ind)
-			if tuple(cur_minus) not in calculated:
-				cur_minus_opt = optimize_params_one_pop(freq,reads,cur_minus,detail=detail)
-				calculated[tuple(cur_minus)] = cur_minus_opt
-			else:
-				cur_minus_opt = calculated[tuple(cur_minus)]
-			for j in range(len(cur_pops)):
-				if ind in cur_pops[j]:
-					continue
-				cur_test = sorted([item for sublist in [cur_pops[j],[ind]] for item in sublist])
-				if tuple(cur_test) not in calculated:
-					cur_test_opt = optimize_params_one_pop(freq,reads,cur_test,detail=detail)
-					calculated[tuple(cur_test)] = cur_test_opt
-				else:
-					cur_test_opt = calculated[tuple(cur_test)]
-				new_lnL = cur_test_opt[1] + cur_minus_opt[1] #the one it's in now, the old one without it
-				old_lnL = cur_opts[j][1] + cur_opts[old_pop][1]
-				lamb = 2*(old_lnL-new_lnL)
-				print [cur_test, cur_minus], [cur_pops[j], cur_pops[old_pop]], lamb
-				if lamb > best_lamb:
-					best_lamb = lamb
-					best_pop = cur_test
-					best_test_opt = cur_test_opt
-					best_j = j
-			if best_lamb > 0:
-				cur_opts[best_j] = best_test_opt
-				cur_opts[old_pop] = cur_minus_opt
-				cur_pops[best_j] = best_pop
-				cur_pops[old_pop] = cur_minus
-			print cur_pops, sum(map(lambda x: x[1], cur_opts))
-		print cur_pops, sum(map(lambda x: x[1], cur_opts))
-	return cur_pops, cur_opts
-	
-
-def cluster_join(freq,reads,eps=1e-4,detail=False):
-	num_ind = len(reads)
-	cur_pops = []
-	for i in range(num_ind):
-		cur_pops.append([i])
-	cur_opts = optimize_pop_params(freq,reads,cur_pops,detail=detail-1)
-	any_to_merge = True
-	calculated = {}
-	while any_to_merge:
-		best_merge = []
-		best_lambda = 0
-		best_improv = 0
-		any_to_merge = False
-		for i in range(len(cur_pops)-1):
-			for j in range(i+1,len(cur_pops)):
-				cur_test = [item for sublist in [cur_pops[i],cur_pops[j]] for item in sublist]
-				print cur_test
-				if tuple(cur_test) not in calculated:
-					cur_test_opt = optimize_params_one_pop(freq,reads,cur_test,detail=detail-1)
-					calculated[tuple(cur_test)] = cur_test_opt
-				else:
-					cur_test_opt = calculated[tuple(cur_test)]
-				old_lnL = cur_opts[i][1] + cur_opts[j][1]
-				new_lnL = cur_test_opt[1]
-				new_lambda = 2*(old_lnL-new_lnL)
-				rel_improv = -(new_lnL/old_lnL-1)
-				if detail: print old_lnL, new_lnL, new_lambda, rel_improv
-				#if new_lambda > best_lambda:
-				if rel_improv > eps and rel_improv > best_improv:
-					best_merge = cur_test
-					best_i = i
-					best_j = j
-					best_opt = cur_test_opt
-					best_lambda = new_lambda
-					best_improv = rel_improv
-					any_to_merge = True
-		if best_lambda == 0: break
-		print best_merge, best_lambda, best_improv
-		cur_opts[best_i] = best_opt
-		cur_opts.pop(best_j)	
-		cur_pops[best_i] = best_merge
-		cur_pops.pop(best_j)
-		print cur_pops
-	return cur_pops, cur_opts
-
-def optimize_pop_params(freq,reads,pops,detail=False):
-	min_a, min_d, read_like = bound_and_precompute_read_like(reads)
-	freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
-	opts = []
-	for i in range(len(pops)):
-		if np.array_equal(pops[i],[]):
-			opts.append(None)
-			continue
-		print "Processing pop %d: %s"%(i,str(pops[i]))
-		cur_opt = opt.fmin_l_bfgs_b(func=lambda x: -sum(compute_GT_like_DP(read_lists[i],freqs,x[0],x[1],read_like,min_a,min_d,detail=detail)), x0 = st.uniform.rvs(size=2), approx_grad=True,bounds=[[0,10],[0,10]])#,epsilon=.001, factr=10, pgtol=1e-10) 
-		print cur_opt[0], cur_opt[1]
-		opts.append(cur_opt)
-	return opts
-
-def optimize_pop_params_error(freq,reads,pops,continuity=False,detail=False):
-	min_a, max_a, min_d, max_d = get_bounds_reads(reads)
-	freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
-	opts = []
-	if continuity:
-		t_bounds = np.array((1e-10,10))
-	else:
-		t_bounds = np.array(((1e-10,10),(1e-10,10)))
-	for i in range(len(pops)):
-		if np.array_equal(pops[i],[]):
-			opts.append(None)
-			continue
-		print "Processing pop %d: %s"%(i, str(pops[i]))
-		num_ind_in_pop = len(read_lists[i][0][0])
-		params_init = np.hstack((st.uniform.rvs(size=2),st.uniform.rvs(size=num_ind_in_pop,scale=.1)))
-		e_bounds = np.transpose(np.vstack((np.full(num_ind_in_pop,1e-10),np.full(num_ind_in_pop,.2))))
-		bounds = np.vstack((t_bounds,e_bounds))
-		if continuity:
-			params_init = np.delete(params_init, 1)
-			cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],0,x[1:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
-		else:
-			cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(read_lists[i],freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
-		print cur_opt[0], cur_opt[1]
-		opts.append(cur_opt)
-	return opts	
 
 def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail = False, continuity=False):
 	if continuity:
@@ -768,21 +402,6 @@ def optimize_params_one_pop(freq,reads,pop,detail=False):
 	return cur_opt
 	
 
-def compute_GT_like_DP(reads,freq,t1,t2,precompute_read_prob,min_a,min_d,detail=False):
-	if reads[0][0].ndim == 1:
-		n_diploid = 1
-	else:
-		n_diploid = len(reads[0][0])
-	n_haploid = 2*n_diploid
-	sampling_prob = compute_Ehet(freq,n_haploid,t1,t2)
-	like_per_freq = []
-	for i in range(len(freq)):
-		read_prob_per_site = compute_all_read_like(reads[i],precompute_read_prob,min_a,min_d)
-		read_prob = read_prob_DP(read_prob_per_site)
-		like_per_freq.append(sum(np.log(np.dot(read_prob,sampling_prob[i]))))
-	if detail: print t1, t2, -sum(like_per_freq)
-	return like_per_freq
-
 def compute_GT_like_DP_error(reads,freq,t1,t2,precompute_read_prob,min_a,min_d,detail=False):
 	if reads[0][0].ndim == 1:
 		n_diploid = 1
@@ -806,18 +425,3 @@ def likelihood_error(reads,freq,t1,t2,error,min_a,max_a,min_d,max_d,detail=False
 	if detail > 1: print error
 	return compute_GT_like_DP_error(reads,freq,t1,t2,read_probs,min_a,min_d,detail=detail)
 
-def read_inds_pops(reads_file,ind_file):
-	reads = open(reads_file)
-	header = reads.readline()
-	reads.close()
-	headerSplit = header.strip().split()
-        inds_alleles = np.array(headerSplit[3:])
-        der_indices = np.arange(len(inds_alleles),step=3)
-        anc_indices = np.arange(1,len(inds_alleles),step=3)
-        inds = [x.split("_")[0] for x in inds_alleles[der_indices]]
-	inds_pops = pandas.read_table(ind_file,delim_whitespace=True,header=None)
-	unique_pops = np.unique(inds_pops[ [ind in inds for ind in inds_pops[0]] ][[2]])
-	label_names = [inds_pops[inds_pops[0] == ind][2].values for ind in inds]
-	label = [int(np.where(name == unique_pops)[0]) for name in label_names]
-	pops = [list(np.where(np.array(label)==i)[0]) for i in range(len(unique_pops))]
-	return unique_pops, label_names, label, pops, inds
