@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  20 FEB 2017 16:29
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  3 MAR 2017 16:06
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -168,21 +168,43 @@ Package: natbib 2010/09/13 8.31b (PWD, AO)
 \bibsep=\skip47
 LaTeX Info: Redefining \cite on input line 694.
 \c@NAT@ctr=\count107
-) (./ancient.aux)
+)
+(/usr/local/texlive/2014/texmf-dist/tex/latex/lineno/lineno.sty
+Package: lineno 2005/11/02 line numbers on paragraphs v4.41
+\linenopenalty=\count108
+\output=\toks22
+\linenoprevgraf=\count109
+\linenumbersep=\dimen122
+\linenumberwidth=\dimen123
+\c@linenumber=\count110
+\c@pagewiselinenumber=\count111
+\c@LN@truepage=\count112
+\c@internallinenumber=\count113
+\c@internallinenumbers=\count114
+\quotelinenumbersep=\dimen124
+\bframerule=\dimen125
+\bframesep=\dimen126
+\bframebox=\box28
+LaTeX Info: Redefining \\ on input line 3056.
+)
+(/usr/local/texlive/2014/texmf-dist/tex/latex/setspace/setspace.sty
+Package: setspace 2011/12/19 v6.7a set line spacing
+)
+(./ancient.aux)
 \openout1 = `ancient.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 22.
-LaTeX Font Info:    ... okay on input line 22.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 22.
-LaTeX Font Info:    ... okay on input line 22.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 22.
-LaTeX Font Info:    ... okay on input line 22.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 22.
-LaTeX Font Info:    ... okay on input line 22.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 22.
-LaTeX Font Info:    ... okay on input line 22.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 22.
-LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -220,17 +242,17 @@ LaTeX Font Info:    ... okay on input line 22.
 
 (/usr/local/texlive/2014/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count108
-\scratchdimen=\dimen122
-\scratchbox=\box28
-\nofMPsegments=\count109
-\nofMParguments=\count110
-\everyMPshowfont=\toks22
-\MPscratchCnt=\count111
-\MPscratchDim=\dimen123
-\MPnumerator=\count112
-\makeMPintoPDFobject=\count113
-\everyMPtoPDFconversion=\toks23
+\scratchcounter=\count115
+\scratchdimen=\dimen127
+\scratchbox=\box29
+\nofMPsegments=\count116
+\nofMParguments=\count117
+\everyMPshowfont=\toks23
+\MPscratchCnt=\count118
+\MPscratchDim=\dimen128
+\MPnumerator=\count119
+\makeMPintoPDFobject=\count120
+\everyMPtoPDFconversion=\toks24
 ) (/usr/local/texlive/2014/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
 Package: pdftexcmds 2011/11/29 v0.20 Utility functions of pdfTeX for LuaTeX (HO
 )
@@ -275,130 +297,153 @@ G,.JBIG2,.JB2,.eps]
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-LaTeX Font Info:    Try loading font information for U+msa on input line 23.
+LaTeX Font Info:    Try loading font information for U+msa on input line 29.
 
 (/usr/local/texlive/2014/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 23.
+LaTeX Font Info:    Try loading font information for U+msb on input line 29.
 
 (/usr/local/texlive/2014/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
-{/usr/local/texlive/2014/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2]
+{/usr/local/texlive/2014/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2] [3]
+ [4]
+Overfull \hbox (2.9818pt too wide) in paragraph at lines 63--65
+\OT1/cmr/m/n/10 where $(\OT1/cmr/bx/n/10 v\OT1/cmr/m/n/10 )[]$ in-di-cates the 
+$\OML/cmm/m/it/10 i$\OT1/cmr/m/n/10 th el-e-ment of the vec-tor $\OT1/cmr/bx/n/
+10 v$\OT1/cmr/m/n/10 , $\OT1/cmr/bx/n/10 h[] \OT1/cmr/m/n/10 = ((1 \OMS/cmsy/m/
+n/10 ^^@ \OML/cmm/m/it/10 x\OT1/cmr/m/n/10 )[]\OML/cmm/m/it/10 ; x\OT1/cmr/m/n/
+10 (1 \OMS/cmsy/m/n/10 ^^@ \OML/cmm/m/it/10 x\OT1/cmr/m/n/10 )[]\OML/cmm/m/it/1
+0 ; [] ; x[]\OT1/cmr/m/n/10 )[]$
+ []
+
 \openout3 = `ancient.fff'.
 
- (ancient.fff)
-[3] [4] [5]
+(ancient.fff) [5] [6] [7]
 \openout4 = `ancient.ttt'.
 
- (ancient.ttt) [6] [7] [8] [9] [10] [11]
-Overfull \hbox (42.69362pt too wide) detected at line 295
-\OML/cmm/m/it/10.95 L\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 D\OT1/cmr/m/n/10.9
-5 ) = [] [] [] [] \OML/cmm/m/it/10.95 :
+ (ancient.ttt) [8] [9] [10] [11]
+Overfull \hbox (0.32022pt too wide) in paragraph at lines 212--213
+[]\OT1/cmr/m/n/10 Our cur-rent ap-proach leaves sev-eral av-enues for im-prove-
+ment. Al-though our method
  []
 
-(./ancient.bbl [12] [13]
-Underfull \hbox (badness 1168) in paragraph at lines 146--151
-[]\OT1/cmr/m/n/10.95 Iain Math-ieson, Iosif Lazaridis, Nadin Roh-land, Swa-pan 
-Mallick, Nick Pat-ter-son,
+[12] [13] [14] [15] [16]
+Overfull \hbox (62.55733pt too wide) detected at line 306
+\OML/cmm/m/it/10 L\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 D\OT1/cmr/m/n/10 ) = [] [] 
+[] [] \OML/cmm/m/it/10 :
  []
 
-[14]) AED endfloat: Processing end Figures and Tables [15] (./ancient.fff
-<backward_forward_v2.pdf, id=67, 277.50876pt x 169.85858pt>
+[17]
+Overfull \hbox (80.21864pt too wide) in paragraph at lines 324--325
+\OT1/cmr/m/n/10 Python im-ple-men-ta-tions of the de-scribed meth-ods are avail
+-able at www.github.com/schraiber/continuity/ 
+ []
+
+(./ancient.bbl [18] [19] [20] [21])
+AED endfloat: Processing end Figures and Tables [22] (./ancient.fff
+<backward_forward_v2.pdf, id=90, 277.50876pt x 169.85858pt>
 File: backward_forward_v2.pdf Graphic file (type pdf)
 
 <use backward_forward_v2.pdf>
 Package pdftex.def Info: backward_forward_v2.pdf used on input line 3.
 (pdftex.def)             Requested size: 387.00153pt x 236.88286pt.
- [16
+ [23
 
 
  <./backward_forward_v2.pdf>]
-<RMSE_Figure.pdf, id=179, 506.10179pt x 192.47307pt>
+<RMSE_Figure.pdf, id=204, 506.10179pt x 192.47307pt>
 File: RMSE_Figure.pdf Graphic file (type pdf)
  <use RMSE_Figure.pdf>
 Package pdftex.def Info: RMSE_Figure.pdf used on input line 11.
 (pdftex.def)             Requested size: 430.00462pt x 163.5324pt.
 
-[17
+[24
 
  <./RMSE_Figure.pdf>]
-<continuity_rejection.pdf, id=231, 578.16pt x 433.62pt>
+<continuity_rejection.pdf, id=256, 578.16pt x 433.62pt>
 File: continuity_rejection.pdf Graphic file (type pdf)
 
 <use continuity_rejection.pdf>
 Package pdftex.def Info: continuity_rejection.pdf used on input line 19.
 (pdftex.def)             Requested size: 430.00462pt x 322.50143pt.
- [18
+ [25
 
  <./continuity_rejection.pdf>]
-<parameters_and_age.pdf, id=246, 542.76881pt x 634.33685pt>
+<parameters_and_age.pdf, id=272, 542.76881pt x 634.33685pt>
 File: parameters_and_age.pdf Graphic file (type pdf)
 
 <use parameters_and_age.pdf>
 Package pdftex.def Info: parameters_and_age.pdf used on input line 27.
 (pdftex.def)             Requested size: 344.005pt x 402.04445pt.
- [19
+ [26
 
  <./parameters_and_age.pdf>]
-<error_hist_and_scatter_vs_coverage.pdf, id=299, 989.19562pt x 543.83174pt>
+<error_hist_and_scatter_vs_coverage.pdf, id=325, 989.19562pt x 543.83174pt>
 File: error_hist_and_scatter_vs_coverage.pdf Graphic file (type pdf)
 
 <use error_hist_and_scatter_vs_coverage.pdf>
 Package pdftex.def Info: error_hist_and_scatter_vs_coverage.pdf used on input l
 ine 35.
 (pdftex.def)             Requested size: 430.00462pt x 236.39893pt.
- [20
+ [27
 
- <./error_hist_and_scatter_vs_coverage.pdf>] <sep_vs_pops.pdf, id=326, 1099.407
+ <./error_hist_and_scatter_vs_coverage.pdf>] <sep_vs_pops.pdf, id=351, 1099.407
 42pt x 542.9284pt>
 File: sep_vs_pops.pdf Graphic file (type pdf)
 
 <use sep_vs_pops.pdf>
 Package pdftex.def Info: sep_vs_pops.pdf used on input line 43.
 (pdftex.def)             Requested size: 430.00462pt x 212.35426pt.
- [21
+ [28
 
  <./sep_vs_pops.pdf>]) (./ancient.ttt
 Overfull \hbox (75.64052pt too wide) in paragraph at lines 3--33
  [][] 
  []
 
-[22
+[29
 
 
-]) (./ancient.aux) ) 
+]) (./ancient.aux)
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ ) 
 Here is how much of TeX's memory you used:
- 3521 strings out of 493117
- 48709 string characters out of 6135433
- 125389 words of memory out of 5000000
- 6924 multiletter control sequences out of 15000+600000
- 12487 words of font info for 47 fonts, out of 8000000 for 9000
+ 3773 strings out of 493117
+ 52556 string characters out of 6135433
+ 127943 words of memory out of 5000000
+ 7163 multiletter control sequences out of 15000+600000
+ 15759 words of font info for 60 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 38i,9n,26p,1865b,266s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsf
-onts/cm/cmbx10.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmbx12.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfon
-ts/cm/cmex10.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfont
-s/cm/cmmi10.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts
-/cm/cmmi6.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/c
-m/cmmi8.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmr10.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-r12.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr1
-7.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.p
-fb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb>
-</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><
-/usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></u
-sr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr
-/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/
-local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/l
-ocal/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on ancient.pdf (22 pages, 3725877 bytes).
+ 38i,9n,26p,1891b,294s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
+></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
+</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><
+/usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></
+usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></us
+r/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/
+local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/lo
+cal/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/loca
+l/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/
+texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/te
+xlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texli
+ve/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/
+2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/201
+4/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb></usr/local/texlive/2014/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2014/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/2014/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2014/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2014/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2014/texmf-d
+ist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
+Output written on ancient.pdf (29 pages, 3759813 bytes).
 PDF statistics:
- 423 PDF objects out of 1000 (max. 8388607)
- 183 compressed objects within 2 object streams
+ 458 PDF objects out of 1000 (max. 8388607)
+ 207 compressed objects within 3 object streams
  0 named destinations out of 1000 (max. 500000)
  31 words of extra memory for PDF output out of 10000 (max. 10000000)
 
