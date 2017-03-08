@@ -1,4 +1,26 @@
-
+def get_het_prob_old(freq,GT):
+	anc_dict_list = []
+	num_ind = len(GT[0])
+	for ind in range(num_ind):
+		anc_dict_list.append({})
+	for i in range(len(freq)):
+		for ind in range(num_ind):
+			if freq[i] in anc_dict_list[ind]:
+				anc_dict_list[ind][freq[i]][GT[i][ind]] += 1.0
+			else:
+				anc_dict_list[ind][freq[i]] = np.array([0.0,0.0,0.0])
+				anc_dict_list[ind][freq[i]][GT[i][ind]] += 1.0
+	unique_freqs = sorted(np.unique(freq))
+	pHet = []
+	for ind in range(num_ind):
+		pHet.append([])
+		for i in range(len(unique_freqs)):
+			cur_anc = anc_dict_list[ind][unique_freqs[i]]
+			try:
+				pHet[-1].append(cur_anc[1]/(cur_anc[1]+cur_anc[2]))
+			except ZeroDivisionError:
+				pHet[-1].append(None)
+	return np.array(unique_freqs), np.array(pHet), anc_dict_list
 def get_het_prob(freq,GT):
 	anc_dict_list = []
 	num_ind = len(GT)
