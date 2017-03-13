@@ -8,6 +8,7 @@ from scipy.sparse.linalg import expm_multiply as expma
 from numpy import random as rn
 from joblib import Parallel, delayed
 import pandas
+import sys
 
 class FreqError(Exception):
 	pass
@@ -198,7 +199,9 @@ def parse_reads_by_pop(read_file_name,ind_file,cutoff=0):
 	pops = [list(np.where(np.array(label)==i)[0]) for i in range(len(unique_pops))]
 	read_dicts = [{} for i in range(max(label)+1)]
 	for line_no, line in enumerate(read_file):
-		if line_no % 10000 == 0: print line_no
+		if line_no % 1000 == 0: 
+			sys.stdout.write("Reading line: %d \r"%line_no)
+			sys.stdout.flush()
 		splitLine = line.strip().split()
 		read_counts = np.array(map(int,splitLine[3:])) #TODO: Make this so it can handle either counts or k, n by making the first index a variable
 		der_counts = read_counts[der_indices]
@@ -226,7 +229,7 @@ def parse_reads_by_pop(read_file_name,ind_file,cutoff=0):
 		read_lists.append([])
 		for freq in freqs:
 			read_lists[-1].append(np.array(read_dicts[i][freq]))
-	return unique_pops, label_names, label, pops, inds, freqs, read_lists
+	return unique_pops, inds, label, pops, freqs, read_lists
 
 
 #read_dict is a list of arrays, sorted by freq
@@ -309,12 +312,18 @@ def compute_Ehet(freq, n, t1, t2):
 	Ehet = expma(Q*t2,backward)
 	return np.transpose(Ehet)	
 
+#gets bounds for each pop separately
 def get_bounds_reads(reads):
-	reads_array = np.array(reads)
-	min_a = np.min(reads_array[:,:,0])
-	max_a = np.max(reads_array[:,:,0])
-	min_d = np.min(reads_array[:,:,1])
-	max_d = np.max(reads_array[:,:,1])
+	min_a = []
+	max_a = []
+	min_d = []
+	max_d = []
+	for i in range(len(reads)):
+		#TODO: This doesn't work because x[:,:,0] is possibly an array
+		min_a.append(min(map(lambda x: np.amin(x[:,:,0]),reads[i])))
+		max_a.append(max(map(lambda x: np.amax(x[:,:,0]),reads[i])))
+		min_d.append(min(map(lambda x: np.amin(x[:,:,1]),reads[i])))
+		max_d.append(max(map(lambda x: np.amax(x[:,:,1]),reads[i])))
 	return min_a, max_a, min_d, max_d
 
 def precompute_read_like(min_a,max_a,min_d,max_d):
@@ -392,10 +401,10 @@ def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail = Fa
 	return cur_opt
 
 
-def optimize_pop_params_error_parallel(freq,reads,pops,num_core = 1, detail=False, continuity=False):
-	min_a, max_a, min_d, max_d = get_bounds_reads(reads)
-	freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
-	opts = Parallel(n_jobs=num_core)(delayed(optimize_single_pop_thread)(r, freqs, min_a, max_a, min_d, max_d, detail, continuity) for r in read_lists)
+def optimize_pop_params_error_parallel(freqs,read_lists,pops,num_core = 1, detail=False, continuity=False):
+	min_a, max_a, min_d, max_d = get_bounds_reads(read_lists)
+	#freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
+	opts = Parallel(n_jobs=num_core)(delayed(optimize_single_pop_thread)(read_lists[i], freqs, min_a[i], max_a[i], min_d[i], max_d[i], detail, continuity) for i in range(len(read_lists)))
 	return opts
 
 def optimize_params_one_pop(freq,reads,pop,detail=False):
