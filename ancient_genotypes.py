@@ -4,12 +4,8 @@ import scipy.optimize as opt
 import matplotlib.pyplot as plt
 import scipy.stats as st
 import scipy.special as sp
-import copy as cp
 from scipy.sparse.linalg import expm_multiply as expma
-import itertools
-from copy import deepcopy
 from numpy import random as rn
-import sklearn.cluster as cl
 from joblib import Parallel, delayed
 import pandas
 
