@@ -71,14 +71,12 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 	split_times = [0]*num_pop
 	Ne = [0]*num_pop
 	Ne[0] = Ne0
-	label = []
 	for i in range(len(anc_pop)):
 		if anc_time[i] > split_time[i] and anc_pop[i] != 0:
 			print "The sample is more ancient than the population it belongs to"
 			print anc_time[i], split_time[i]
 			return None
 		samples.extend([msp.Sample(population=anc_pop[i],time=anc_time[i])]*(2*anc_per_pop[i]))
-		label.extend([i]*anc_per_pop[i])
 		cur_pop = anc_pop[i]
 		anc_num += anc_per_pop[i]
 		if cur_pop == 0: continue #Hack to just avoid fucking up things for dudes in the first pop
@@ -91,28 +89,25 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 		divergence.append(msp.MassMigration(time=split_times[pop],source=pop,destination=0,proportion=1.0))
 	sims = msp.simulate(samples=samples,Ne=Ne[0],population_configurations=pop_config,demographic_events=divergence,mutation_rate=mu,length=length,num_replicates=num_rep,random_seed=seed)
 	freq = []
-	read_dicts = [{} for i in range(num_pop)]
-	GT = []
 	reads = []
+	GT = []
 	for ind in range(anc_num):
-		GT.append([])
 		reads.append([])
+		GT.append([])
 	sim_num = 0
 	for sim in sims:
 		for variant in sim.variants():
 			var_array = variant.genotypes
 			cur_freq = sum(var_array[:-(2*anc_num)])/float(num_modern)
 			if cur_freq == 0 or cur_freq == 1: continue
+			#TODO: FIX THIS so the results don't need to be re-parsed
 			freq.append(cur_freq)
-			reads_per_pop = [[] for i in range(num_pop)]
 			for i in range(anc_num):
 				ind_num = anc_num-i-1 #NB: indexing to get the output vector to be in the right order
 				if i == 0: cur_GT = var_array[-2:]
 				else: cur_GT = var_array[-(2*(i+1)):-(2*i)]
 				cur_GT = sum(cur_GT)
 				GT[ind_num].append(cur_GT)
-				cur_pop = label[i]
-				reads_per_pop[cur_pop].append([None,None])
 				reads[ind_num].append([None,None])
 				if coverage:
 					num_reads = st.poisson.rvs(coverage)
@@ -120,19 +115,8 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 					p_der = cur_GT/2.*(1-error[ind_num])+(1-cur_GT/2.)*error[ind_num]
 					derived_reads = st.binom.rvs(num_reads, p_der)
 					reads[ind_num][-1] = (num_reads-derived_reads,derived_reads)
-					reads_per_pop[cur_pop][-1] = [num_reads-derived_reads,derived_reads]
-			for i in range(num_pop):
-				if cur_freq in read_dicts[i]:
-					read_dicts[i][cur_freq].append(np.array(reads_per_pop[i]))
-				else:
-					read_dicts[i][cur_freq] = [np.array(reads_per_pop[i])]
-	freqs = sorted(read_dicts[0])
-	read_lists = []
-	for i in range(len(read_dicts)):
-		read_lists.append([])
-		for curfreq in freqs:
-			read_lists[-1].append(np.array(read_dicts[i][curfreq]))
-	return np.array(freq), GT, reads, read_lists, np.array(freqs)	
+
+	return np.array(freq), GT, reads	
 
 #Writes a beagle genotype likelihood file for data from the simulations
 #NB: simulates modern individuals from the allele frequencies and HW equilibrium
