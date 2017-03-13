@@ -91,6 +91,7 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 		divergence.append(msp.MassMigration(time=split_times[pop],source=pop,destination=0,proportion=1.0))
 	sims = msp.simulate(samples=samples,Ne=Ne[0],population_configurations=pop_config,demographic_events=divergence,mutation_rate=mu,length=length,num_replicates=num_rep,random_seed=seed)
 	freq = []
+	read_dicts = [{} for i in range(num_pop)]
 	GT = []
 	reads = []
 	for ind in range(anc_num):
@@ -119,7 +120,19 @@ def ancient_sample_many_pops(num_modern=1000,anc_pop = [0], anc_per_pop = [1], a
 					p_der = cur_GT/2.*(1-error[ind_num])+(1-cur_GT/2.)*error[ind_num]
 					derived_reads = st.binom.rvs(num_reads, p_der)
 					reads[ind_num][-1] = (num_reads-derived_reads,derived_reads)
-	return np.array(freq), GT, reads	
+					reads_per_pop[cur_pop][-1] = [num_reads-derived_reads,derived_reads]
+			for i in range(num_pop):
+				if cur_freq in read_dicts[i]:
+					read_dicts[i][cur_freq].append(np.array(reads_per_pop[i]))
+				else:
+					read_dicts[i][cur_freq] = [np.array(reads_per_pop[i])]
+	freqs = sorted(read_dicts[0])
+	read_lists = []
+	for i in range(len(read_dicts)):
+		read_lists.append([])
+		for curfreq in freqs:
+			read_lists[-1].append(np.array(read_dicts[i][curfreq]))
+	return np.array(freq), GT, reads, read_lists, np.array(freqs)	
 
 #Writes a beagle genotype likelihood file for data from the simulations
 #NB: simulates modern individuals from the allele frequencies and HW equilibrium
@@ -190,7 +203,7 @@ def parse_reads(read_file_name,cutoff=0):
 
 #pops is a list of lists of inds to put into pops
 #e.g. [[0,3],[1,2]] says put inds 0 and 3 in pop 1, inds 1 and 2 in pop 2 
-def parse_reads_by_pop(read_file_name,label,cutoff=0):
+def parse_reads_by_pop(read_file_name,ind_file,cutoff=0):
 	read_file = open(read_file_name)
 	header = read_file.readline()
 	headerSplit = header.strip().split()
@@ -198,6 +211,11 @@ def parse_reads_by_pop(read_file_name,label,cutoff=0):
 	der_indices = np.arange(len(inds_alleles),step=3)
 	anc_indices = np.arange(1,len(inds_alleles),step=3)
 	inds = [x.split("_")[0] for x in inds_alleles[der_indices]]
+	inds_pops = pandas.read_table(ind_file,delim_whitespace=True,header=None)
+	unique_pops = np.unique(inds_pops[ [ind in inds for ind in inds_pops[0]] ][[2]])
+	label_names = [inds_pops[inds_pops[0] == ind][2].values for ind in inds]
+	label = [int(np.where(name == unique_pops)[0]) for name in label_names]
+	pops = [list(np.where(np.array(label)==i)[0]) for i in range(len(unique_pops))]
 	read_dicts = [{} for i in range(max(label)+1)]
 	for line_no, line in enumerate(read_file):
 		if line_no % 10000 == 0: print line_no
@@ -209,6 +227,9 @@ def parse_reads_by_pop(read_file_name,label,cutoff=0):
 		samples_with_reads = sum(sample_has_reads)
 		if float(samples_with_reads)/len(inds) < cutoff: continue
 		cur_freq = float(splitLine[2]) #TODO: Generalize to n, k
+		if cur_freq == 0 or cur_freq == 1: 
+			print "Ignoring alleles that are frequency 0 or frequency 1 in reference population"
+			continue
 		reads_per_pop = [[] for i in range(max(label)+1)]
 		for i in range(len(inds)):
 			cur_pop = label[i]
@@ -220,13 +241,12 @@ def parse_reads_by_pop(read_file_name,label,cutoff=0):
 			else:
 				read_dicts[i][cur_freq] = [np.array(reads_per_pop[i])]
 	freqs = sorted(read_dicts[0])
-	print map(len,read_dicts)
 	read_lists = []
 	for i in range(len(read_dicts)):
 		read_lists.append([])
 		for freq in freqs:
 			read_lists[-1].append(np.array(read_dicts[i][freq]))
-	return freqs, read_lists
+	return unique_pops, label_names, label, pops, inds, freqs, read_lists
 
 
 #read_dict is a list of arrays, sorted by freq
