@@ -79,6 +79,16 @@ This will return a list of scipy.optimize objects, each one corresponding to a p
 
 If you want to do a likelihood ratio test for continuity you should run ``optimize_pop_params_error_parallel()`` *twice*, once with ``continuity = False`` and the second time with ``continuity = True``. Then, you compute the likelihood ratio statstic as ``2*(likelihood_cont_true - likelihood_cont_false)`` and that is distributed as chi-squared with 1 degree of freedom under the null. 
 
-For example, continuing
+For example, continuing with the variables above
 
-TODO: FINISH MANUAL 
+```
+import scipy.stats
+opts_cont_false = optimize_pop_params_error_parallel(freqs,read_lists,pops,continuity=False)
+opts_cont_true = optimize_pop_params_error_parallel(freqs,read_lists,pops,continuity=True)
+likelihood_false = np.array([-x[1] for x in opts_cont_false]) #minus sign is because scipy.optimize minimizes the negative log likelihood
+likelihood_true = np.array([-x[1] for x in opts_cont_true])
+LRT = 2*(likelihood_false - likelihood_true)
+p_vals = scipy.stats.logsf(LRT,1) #returns the LOG p-values
+```
+
+ 
