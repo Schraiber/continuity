@@ -66,7 +66,7 @@ unique_pops, inds, label, pops, freqs, read_lists = parse_reads_by_pop("path/to/
 
 There is a function ``optimize_pop_params_error_parallel()`` that will fit the model to your data for every population. It has six arguments:
 
-1. ``freqis``: the ``freqe`` object that's output from ``parse_reads_by_pop()``
+1. ``freqs``: the ``freqs`` object that's output from ``parse_reads_by_pop()``
 2. ``read_lists``: the ``read_lists`` object that's output from ``parse_reads_by_pop()``
 3. ``pops``: a list of population membership (you can use the ``pops`` object output by ``parse_reads_by_pop()`` or you can create your own if you want to explore how different groupings influence the results)
 4. ``num_core``: the number of cores to use. Each different population is farmed out to a different core.
