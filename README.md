@@ -8,7 +8,7 @@ There are several dependencies. You will need `numpy`, `matplotlib`, `scipy`, `j
 
 ## Data format
 
-The current data format is a tab separated file in which each line is a SNP, the first column is the chromosome name, second column position and the third column is allele frequency in reference modern population. NB: DO NOT include alleles that are frequency 0 or frequency 1 in the reference modern popuation. Subsequent columns are three per ancient sample, with the counts of the number of reads at that site with the derived allele, the ancestral allele, and some other allele, respectively. There is a required header: 
+The current data format is a tab separated file in which each line is a SNP, the first column is the chromosome name, second column position and the third column is *derived* allele frequency in reference modern population (thus, you must be able to polarize your alleles). NB: DO NOT include alleles that are frequency 0 or frequency 1 in the reference modern popuation. Subsequent columns are three per ancient sample, with the counts of the number of reads at that site with the derived allele, the ancestral allele, and some other allele, respectively. There is a required header: 
 
 ```
 Chrom	Pos	AF	anc1_der	anc1_anc	anc1_other	anc2_der	anc2_anc	anc2_other	...
