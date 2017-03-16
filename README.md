@@ -64,14 +64,13 @@ unique_pops, inds, label, pops, freqs, read_lists = parse_reads_by_pop("path/to/
 
 ## Estimating parameters
 
-There is a function ``optimize_pop_params_error_parallel()`` that will fit the model to your data for every population. It has six arguments:
+There is a function ``optimize_pop_params_error_parallel()`` that will fit the model to your data for every population. It has five arguments:
 
 1. ``freqs``: the ``freqs`` object that's output from ``parse_reads_by_pop()``
 2. ``read_lists``: the ``read_lists`` object that's output from ``parse_reads_by_pop()``
-3. ``pops``: a list of population membership (you can use the ``pops`` object output by ``parse_reads_by_pop()`` or you can create your own if you want to explore how different groupings influence the results)
-4. ``num_core``: the number of cores to use. Each different population is farmed out to a different core.
-5. ``detail``: whether to print some updates as the optimization is going (default ``False``)
-6. ``continuity``: whether to optimize the parameters while holding `t2 = 0` (i.e. finding the best fitting parameters assuming population continuity with the ancient sample) (default False)
+3. ``num_core``: the number of cores to use. Each different population is farmed out to a different core.
+4. ``detail``: whether to print some updates as the optimization is going (default ``False``)
+5. ``continuity``: whether to optimize the parameters while holding `t2 = 0` (i.e. finding the best fitting parameters assuming population continuity with the ancient sample) (default False)
 
 This will return a list of scipy.optimize objects, each one corresponding to a population in ``pops``. The important parts of each object are the 0th entry, which are the parameters of the model, and the 1st entry, which is the *negative* log likelihood of the model. The parameters are in the order ``t1``, ``t2``, ``error_for_ind_1``, ``error_for_ind_2``, and so on. 
 

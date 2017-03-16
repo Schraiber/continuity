@@ -383,7 +383,9 @@ def read_prob_DP(read_likes):
 	return h
 
 
-def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail = False, continuity=False):
+def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail = False, continuity=False, seed = None):
+	if seed is not None:
+		np.random.seed(seed=seed)
 	if continuity:
 		t_bounds = np.array((1e-10,10))
 	else:
@@ -401,10 +403,11 @@ def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail = Fa
 	return cur_opt
 
 
-def optimize_pop_params_error_parallel(freqs,read_lists,pops,num_core = 1, detail=False, continuity=False):
+def optimize_pop_params_error_parallel(freqs,read_lists,num_core = 1, detail=False, continuity=False):
 	min_a, max_a, min_d, max_d = get_bounds_reads(read_lists)
+	seeds = st.randint.rvs(0,100000,size=len(read_lists))
 	#freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
-	opts = Parallel(n_jobs=num_core)(delayed(optimize_single_pop_thread)(read_lists[i], freqs, min_a[i], max_a[i], min_d[i], max_d[i], detail, continuity) for i in range(len(read_lists)))
+	opts = Parallel(n_jobs=num_core)(delayed(optimize_single_pop_thread)(read_lists[i], freqs, min_a[i], max_a[i], min_d[i], max_d[i], detail, continuity,seed=seeds[i]) for i in range(len(read_lists)))
 	return opts
 
 def optimize_params_one_pop(freq,reads,pop,detail=False):
