@@ -31,7 +31,7 @@ Chrom	Pos	AF	I0412_der	I0412_anc	I0412_other	I1277_der	I1277_anc	I1277_other
 
 ## Specifying ancient panels
 
-You also need to specify the panels that the ancient individuals belong to (i.e. a prior populations) using an eigenstrat-format ind file, with each line corresponding to a sample and 3 columns, sample name, sex (not used, but required), and population name. The individual names need to match the individual names in the input data. Yes, you even need to do this if you only have one individual. For instance, for the above data, we have
+You also need to specify the panels that the ancient individuals belong to (i.e. a prior populations) using an eigenstrat-format ind file, with each line corresponding to a sample and 3 columns, sample name, sex (not used, so it doesn't actually have to be correct, but the column is required), and population name. The individual names need to match the individual names in the input data. Yes, you even need to do this if you only have one individual. For instance, for the above data, we have
 
 ```
 I0412 M  Iberia_EN
