@@ -62,6 +62,16 @@ from ancient_genotypes import *
 unique_pops, inds, label, pops, freqs, read_lists = parse_reads_by_pop("path/to/reads/file.reads","/path/to/ind/file.ind",cutoff=0)
 ```
 
+## Filtering for coverage in the ancient sample
+
+For various reasons, such as cryptic structural variation, you may have some sites with unusually high/low coverage in your ancient samples. These sites can severely mislead analyses.  A common approach is to remove sites that fall in the tails of the coverage distribution. You can do that once you've read in your data by using the function ``coverage_filter()``. It will set any sites that violate a coverage filter in an individual to have 0 coverage. It takes 3 arguments:
+
+1. ``read_lists``: The ``read_lists`` object that comes out of ``parse_reads_by_pop()``
+2. ``min_cutoff``: sites with coverage less than this percentile will be removed (default 2.5)
+3. ``max_cutoff``: sites with coverage more than this percentile will be removed (default 97.5)
+
+This function operates on ``read_lists`` *IN PLACE*, meaning that ``read_lists`` will be modified. The function returns a single value, which is a list of the coverage cutoffs for each individual in each population.
+
 ## Estimating parameters
 
 There is a function ``optimize_pop_params_error_parallel()`` that will fit the model to your data for every population. It has five arguments:
