@@ -231,6 +231,22 @@ def parse_reads_by_pop(read_file_name,ind_file,cutoff=0):
 			read_lists[-1].append(np.array(read_dicts[i][freq]))
 	return unique_pops, inds, label, pops, freqs, read_lists
 
+#removes any sites that have coverage in at least one ind that falls outside the cutoff
+#operates IN PL?ACE, returns the cutoffs
+def coverage_filter(read_lists, min_cutoff=2.5,max_cutoff=97.5):
+	cuts_per_pop = []
+	for i in range(len(read_lists)):
+		#first compute quantiles
+		all_cov = map(lambda x: np.sum(x,axis=2),read_lists[i])
+		cuts = np.percentile(np.vstack(all_cov),[min_cutoff,max_cutoff],axis=0)
+		cuts_per_pop.append(cuts)
+		bad_sites = map(lambda x: (x < cuts[0]) + (x > cuts[1]),all_cov)
+		for j in range(len(bad_sites)):
+			#Set bad sites to have zero coverage
+			#TODO: Also think about just completely removing these sites?
+			read_lists[i][j][bad_sites[j],:] = np.array([0,0])
+	return cuts_per_pop
+		
 
 #read_dict is a list of arrays, sorted by freq
 ##the first level corresponds to the freqs in freq
@@ -319,7 +335,6 @@ def get_bounds_reads(reads):
 	min_d = []
 	max_d = []
 	for i in range(len(reads)):
-		#TODO: This doesn't work because x[:,:,0] is possibly an array
 		min_a.append(min(map(lambda x: np.amin(x[:,:,0]),reads[i])))
 		max_a.append(max(map(lambda x: np.amax(x[:,:,0]),reads[i])))
 		min_d.append(min(map(lambda x: np.amin(x[:,:,1]),reads[i])))
