@@ -188,12 +188,13 @@ def parse_reads_by_pop(read_file_name,ind_file,cutoff=0):
 	read_file = open(read_file_name)
 	header = read_file.readline()
 	headerSplit = header.strip().split()
-	if header[2] == "AF": 
+	if headerSplit[2] == "AF": 
 		ind_start = 3
-	elif header[2] == "kref" and header[3] == "nref": 
-		ind_strat = 4
+	elif headerSplit[2] == "kref" and headerSplit[3] == "nref": 
+		ind_start = 4
 	else:
 		print "ERROR: improperly formatted header" 
+		print headerSplit
 		return 1
 	inds_alleles = np.array(headerSplit[ind_start:]) 
 	der_indices = np.arange(len(inds_alleles),step=3)
@@ -237,13 +238,13 @@ def parse_reads_by_pop(read_file_name,ind_file,cutoff=0):
 	if ind_start == 3:
 		freqs = sorted(read_dicts[0])
 	else:
-		freqs = np.array(sorted(read_dicts[0], key = lambda x: float(x[0])/x[1]))
+		freqs = sorted(read_dicts[0], key = lambda x: float(x[0])/x[1])
 	read_lists = []
 	for i in range(len(read_dicts)):
 		read_lists.append([])
 		for freq in freqs:
 			read_lists[-1].append(np.array(read_dicts[i][freq]))
-	return unique_pops, inds, label, pops, freqs, read_lists
+	return unique_pops, inds, label, pops, np.array(freqs), read_lists
 
 #removes any sites that have coverage in at least one ind that falls outside the cutoff
 #operates IN PL?ACE, returns the cutoffs
