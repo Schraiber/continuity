@@ -217,8 +217,8 @@ def parse_reads_by_pop(read_file_name,ind_file,cutoff=0):
 		sample_has_reads = (der_counts > 0) | (anc_counts > 0)
 		samples_with_reads = sum(sample_has_reads)
 		if float(samples_with_reads)/len(inds) < cutoff: continue
-		cur_freq = splitLine[2:ind_start] #TODO: Generalize to n, k
-		if ind_start == 3: cur_freq = float(cur_freq)
+		cur_freq = splitLine[2:ind_start]
+		if ind_start == 3: cur_freq = float(cur_freq[0])
 		else: cur_freq = tuple(map(int, cur_freq))
 		if ind_start == 3 and (cur_freq == 0 or cur_freq == 1): 
 			print "Ignoring alleles that are frequency 0 or frequency 1 in reference population"
