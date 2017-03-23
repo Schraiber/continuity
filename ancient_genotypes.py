@@ -188,7 +188,14 @@ def parse_reads_by_pop(read_file_name,ind_file,cutoff=0):
 	read_file = open(read_file_name)
 	header = read_file.readline()
 	headerSplit = header.strip().split()
-	inds_alleles = np.array(headerSplit[3:]) #TODO: Make all these have variable start indices so that it can handle k, n
+	if header[2] == "AF": 
+		ind_start = 3
+	elif header[2] == "kref" and header[3] == "nref": 
+		ind_strat = 4
+	else:
+		print "ERROR: improperly formatted header" 
+		return 1
+	inds_alleles = np.array(headerSplit[ind_start:]) 
 	der_indices = np.arange(len(inds_alleles),step=3)
 	anc_indices = np.arange(1,len(inds_alleles),step=3)
 	inds = [x.split("_")[0] for x in inds_alleles[der_indices]]
@@ -203,16 +210,20 @@ def parse_reads_by_pop(read_file_name,ind_file,cutoff=0):
 			sys.stdout.write("Reading line: %d \r"%line_no)
 			sys.stdout.flush()
 		splitLine = line.strip().split()
-		read_counts = np.array(map(int,splitLine[3:])) #TODO: Make this so it can handle either counts or k, n by making the first index a variable
+		read_counts = np.array(map(int,splitLine[ind_start:])) 
 		der_counts = read_counts[der_indices]
 		anc_counts = read_counts[anc_indices]
 		sample_has_reads = (der_counts > 0) | (anc_counts > 0)
 		samples_with_reads = sum(sample_has_reads)
 		if float(samples_with_reads)/len(inds) < cutoff: continue
-		cur_freq = float(splitLine[2]) #TODO: Generalize to n, k
-		if cur_freq == 0 or cur_freq == 1: 
+		cur_freq = splitLine[2:ind_start] #TODO: Generalize to n, k
+		if ind_start == 3: cur_freq = float(cur_freq)
+		else: cur_freq = tuple(map(int, cur_freq))
+		if ind_start == 3 and (cur_freq == 0 or cur_freq == 1): 
 			print "Ignoring alleles that are frequency 0 or frequency 1 in reference population"
 			continue
+		if ind_start == 4 and (cur_freq[0] == 0 or cur_freq[0] == cur_freq[1]):
+			print "Ignoring alleles that are frequency 0 or frequency 1 in the reference population"
 		reads_per_pop = [[] for i in range(max(label)+1)]
 		for i in range(len(inds)):
 			cur_pop = label[i]
@@ -223,7 +234,10 @@ def parse_reads_by_pop(read_file_name,ind_file,cutoff=0):
 				read_dicts[i][cur_freq].append(np.array(reads_per_pop[i]))
 			else:
 				read_dicts[i][cur_freq] = [np.array(reads_per_pop[i])]
-	freqs = sorted(read_dicts[0])
+	if ind_start == 3:
+		freqs = sorted(read_dicts[0])
+	else:
+		freqs = np.array(sorted(read_dicts[0], key = lambda x: float(x[0])/x[1]))
 	read_lists = []
 	for i in range(len(read_dicts)):
 		read_lists.append([])
@@ -345,8 +359,8 @@ def generate_het_beta(counts, n, alpha = 0.5, beta = 0.5):
 def compute_Ehet(freq, n, t1, t2):
 	Qd = generate_Qd_het(n)
 	Q = generate_Q_het(n)
-	if len(freq[0]) > 1: het = generate_het(freq,n)
-	else: het = generate_het_beta(freq,n)
+	if hasattr(freq[0],"__len__"): het = generate_het_beta(freq,n)
+	else: het = generate_het(freq,n)
 	backward = expma(Qd*t1,het)
 	Ehet = expma(Q*t2,backward)
 	return np.transpose(Ehet)	
