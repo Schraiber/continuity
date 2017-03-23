@@ -320,10 +320,33 @@ def generate_het(freq, n):
 	hetMat = np.array(map(lambda x: x**pows*(1-x)**(n-pows),np.array(freq)))
 	return np.transpose(hetMat)
 
+#k should be a vector of 0, 1, 2, ..., n
+#kref and nref should be matricies with ncol = len(k)
+def beta_expectation(k,kref,nref,alpha = 0.5, beta = 0.5):
+	n = len(k)-1
+	expect = sp.gammaln(alpha+kref+k)+sp.gammaln(beta+nref-kref+n-k)+sp.gammaln(alpha+beta+nref)
+	expect -= sp.gammaln(alpha+kref) + sp.gammaln(beta+nref-kref) + sp.gammaln(alpha + beta + nref + n)
+	return np.exp(expect)
+	
+
+#counts is a list of lists, (k_ref, n_ref)
+#initialized assuming a Jeffreys prior
+#counts should be an array
+def generate_het_beta(counts, n, alpha = 0.5, beta = 0.5):
+	k = np.arange(0,n+1)
+	kref = counts[:,0]
+	krefmat = np.array([[x]*len(k) for x in kref])
+	nref = counts[:,1]
+	nrefmat = np.array([[x]*len(k) for x in nref])
+	expect = beta_expectation(k,krefmat,nrefmat,alpha,beta)
+	return np.transpose(expect)
+	
+
 def compute_Ehet(freq, n, t1, t2):
 	Qd = generate_Qd_het(n)
 	Q = generate_Q_het(n)
-	het = generate_het(freq,n)
+	if len(freq[0]) > 1: het = generate_het(freq,n)
+	else: het = generate_het_beta(freq,n)
 	backward = expma(Qd*t1,het)
 	Ehet = expma(Q*t2,backward)
 	return np.transpose(Ehet)	
