@@ -29,6 +29,22 @@ Chrom	Pos	AF	I0412_der	I0412_anc	I0412_other	I1277_der	I1277_anc	I1277_other
 1	1045331	0.023364	0	31	0	0	0	0
 ```
 
+*EXPERIMENTAL*: You can now indicate the reference population sample size and number of derived reads. Intead of an AF column, you can add two new clumns, ``kref`` and ``nref``, which are the counts of derived alleles and the number of non-missing chromosomes in the references population. So, for example the above file might instead look like
+
+```
+Chrom	Pos	kref	nref	I0412_der	I0412_anc	I0412_other	I1277_der	I1277_anc	I1277_other
+1	891021	94	100	43	0	0	5	0	0
+1	903426	28	100	0	30	0	0	1	0
+1	949654	91	100	0	16	0	0	0	0
+1	1005806	19	100	1	23	0	0	3	0
+1	1018704	48	100	155	0	2	2	3	0
+1	1021415	27	100	5	0	0	1	1	0
+1	1021695	28	100	23	0	0	0	1	0
+1	1031540	69	100	0	0	0	0	0	0
+1	1045331	2	100	0	31	0	0	0	0
+```
+*NOTE THAT THE COLUMNS ``kref`` AND ``nref`` NEED TO HAVE EXACTLY THOSE HEADERS*
+
 ## Specifying ancient panels
 
 You also need to specify the panels that the ancient individuals belong to (i.e. a prior populations) using an eigenstrat-format ind file, with each line corresponding to a sample and 3 columns, sample name, sex (not used, so it doesn't actually have to be correct, but the column is required), and population name. The individual names need to match the individual names in the input data. Yes, you even need to do this if you only have one individual. For instance, for the above data, we have
