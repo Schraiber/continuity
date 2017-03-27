@@ -449,9 +449,9 @@ def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail = Fa
 	bounds = np.vstack((t_bounds,e_bounds))	
 	if continuity:
 		params_init = np.delete(params_init, 1)
-		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],0,x[1:],min_a,max_a,min_d,max_d,detail=detail,beta=beta,alpha=alpha)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
+		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],0,x[1:],min_a,max_a,min_d,max_d,detail=detail,beta=beta,alpha=alpha)), x0 = params_init, approx_grad = True, bounds = bounds, factr = 1, pgtol = 1e-10)
 	else:
-		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail,alpha=alpha,beta=beta)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
+		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail,alpha=alpha,beta=beta)), x0 = params_init, approx_grad = True, bounds = bounds, factr = 1, pgtol = 1e-10)
 	print cur_opt[0], cur_opt[1]
 	return cur_opt
 
@@ -495,3 +495,18 @@ def likelihood_error(reads,freq,t1,t2,error,min_a,max_a,min_d,max_d,detail=False
 	if detail > 1: print error
 	return compute_GT_like_DP_error(reads,freq,t1,t2,read_probs,min_a,min_d,detail=detail, alpha = alpha, beta = beta)
 
+def beta_binom(x,n,a,b):                                                                                     
+        ans = sp.gammaln(n+1) + sp.gammaln(x+a) + sp.gammaln(n-x+b) + sp.gammaln(a+b)
+        ans -= sp.gammaln(x+1) + sp.gammaln(n-x+1) + sp.gammaln(a) + sp.gammaln(b) + sp.gammaln(n+a+b)
+        return ans
+
+def get_beta_params(freqs,read_lists,min_samples=10):
+	if not hasattr(freqs[0],"__len__"):
+		print "ERROR: can't infer beta parameters unless you provide count data"
+		return None
+	num_sites_per_freq = np.array(map(len,read_lists[0]))
+	good_freqs = freqs[:,1]>min_samples
+	cur_opt = opt.fmin_l_bfgs_b(lambda x: -np.sum(num_sites_per_freq[good_freqs]*beta_binom(freqs[good_freqs,0],freqs[good_freqs,1],x[0],x[1])), x0 = [.5,.5], approx_grad=True, bounds = [[1e-10,1000],[1e-10,1000]])
+	alpha = cur_opt[0][0]
+	beta = cur_opt[0][1]
+	return alpha, beta
