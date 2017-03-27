@@ -504,6 +504,10 @@ def get_beta_params(freqs,read_lists,min_samples=10):
 	if not hasattr(freqs[0],"__len__"):
 		print "ERROR: can't infer beta parameters unless you provide count data"
 		return None
+	if min_samples > max(freqs[:,1]):
+		print "WARNING: minimum number of samples to include when computing alpha, beta is bigger than maximum sample size"
+		print "Returning default alpha = 0.5, beta = 0.5"
+		return 0.5, 0.5
 	num_sites_per_freq = np.array(map(len,read_lists[0]))
 	good_freqs = freqs[:,1]>=min_samples
 	cur_opt = opt.fmin_l_bfgs_b(lambda x: -np.sum(num_sites_per_freq[good_freqs]*beta_binom(freqs[good_freqs,0],freqs[good_freqs,1],x[0],x[1])), x0 = [.5,.5], approx_grad=True, bounds = [[1e-10,1000],[1e-10,1000]])
