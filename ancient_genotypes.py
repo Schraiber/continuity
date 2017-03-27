@@ -357,10 +357,10 @@ def generate_het_beta(counts, n, alpha = 0.5, beta = 0.5):
 	return np.transpose(expect)
 	
 
-def compute_Ehet(freq, n, t1, t2):
+def compute_Ehet(freq, n, t1, t2, alpha = 0.5, beta = 0.5):
 	Qd = generate_Qd_het(n)
 	Q = generate_Q_het(n)
-	if hasattr(freq[0],"__len__"): het = generate_het_beta(freq,n)
+	if hasattr(freq[0],"__len__"): het = generate_het_beta(freq,n, alpha = alpha, beta = beta)
 	else: het = generate_het(freq,n)
 	backward = expma(Qd*t1,het)
 	Ehet = expma(Q*t2,backward)
@@ -436,7 +436,7 @@ def read_prob_DP(read_likes):
 	return h
 
 
-def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail = False, continuity=False, seed = None):
+def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail = False, continuity=False, seed = None, beta = 0.5, alpha = 0.5):
 	if seed is not None:
 		np.random.seed(seed=seed)
 	if continuity:
@@ -449,18 +449,18 @@ def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail = Fa
 	bounds = np.vstack((t_bounds,e_bounds))	
 	if continuity:
 		params_init = np.delete(params_init, 1)
-		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],0,x[1:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
+		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],0,x[1:],min_a,max_a,min_d,max_d,detail=detail,beta=beta,alpha=alpha)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
 	else:
-		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
+		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail,alpha=alpha,beta=beta)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-15)
 	print cur_opt[0], cur_opt[1]
 	return cur_opt
 
 
-def optimize_pop_params_error_parallel(freqs,read_lists,num_core = 1, detail=False, continuity=False):
+def optimize_pop_params_error_parallel(freqs,read_lists,num_core = 1, detail=False, continuity=False, alpha = 0.5, beta = 0.5):
 	min_a, max_a, min_d, max_d = get_bounds_reads(read_lists)
 	seeds = st.randint.rvs(0,100000,size=len(read_lists))
 	#freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
-	opts = Parallel(n_jobs=num_core)(delayed(optimize_single_pop_thread)(read_lists[i], freqs, min_a[i], max_a[i], min_d[i], max_d[i], detail, continuity,seed=seeds[i]) for i in range(len(read_lists)))
+	opts = Parallel(n_jobs=num_core)(delayed(optimize_single_pop_thread)(read_lists[i], freqs, min_a[i], max_a[i], min_d[i], max_d[i], detail, continuity,seed=seeds[i], alpha = alpha, beta = beta) for i in range(len(read_lists)))
 	return opts
 
 def optimize_params_one_pop(freq,reads,pop,detail=False):
@@ -472,13 +472,13 @@ def optimize_params_one_pop(freq,reads,pop,detail=False):
 	return cur_opt
 	
 
-def compute_GT_like_DP_error(reads,freq,t1,t2,precompute_read_prob,min_a,min_d,detail=False):
+def compute_GT_like_DP_error(reads,freq,t1,t2,precompute_read_prob,min_a,min_d,detail=False, alpha = 0.5, beta = 0.5):
 	if reads[0][0].ndim == 1:
 		n_diploid = 1
 	else:
 		n_diploid = len(reads[0][0])
 	n_haploid = 2*n_diploid
-	sampling_prob = compute_Ehet(freq,n_haploid,t1,t2)
+	sampling_prob = compute_Ehet(freq,n_haploid,t1,t2, alpha = alpha, beta = beta)
 	like_per_freq = []
 	for i in range(len(freq)):
 		read_prob_per_site = compute_all_read_like_error(reads[i],precompute_read_prob,min_a,min_d)
@@ -487,11 +487,11 @@ def compute_GT_like_DP_error(reads,freq,t1,t2,precompute_read_prob,min_a,min_d,d
 	if detail: print t1, t2, -sum(like_per_freq)
 	return like_per_freq
 
-def likelihood_error(reads,freq,t1,t2,error,min_a,max_a,min_d,max_d,detail=False):
+def likelihood_error(reads,freq,t1,t2,error,min_a,max_a,min_d,max_d,detail=False, alpha = 0.5, beta = 0.5):
 	if t1 < 0 or t2 < 0 or np.any(error<0) or np.any(error>1): 
 		if detail: print t1, t2, 1e300
 		return -1e300
 	read_probs = precompute_read_like_error(min_a,max_a,min_d,max_d,error)
 	if detail > 1: print error
-	return compute_GT_like_DP_error(reads,freq,t1,t2,read_probs,min_a,min_d,detail=detail)
+	return compute_GT_like_DP_error(reads,freq,t1,t2,read_probs,min_a,min_d,detail=detail, alpha = alpha, beta = beta)
 
