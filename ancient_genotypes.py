@@ -449,9 +449,9 @@ def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail = Fa
 	bounds = np.vstack((t_bounds,e_bounds))	
 	if continuity:
 		params_init = np.delete(params_init, 1)
-		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],0,x[1:],min_a,max_a,min_d,max_d,detail=detail,beta=beta,alpha=alpha)), x0 = params_init, approx_grad = True, bounds = bounds, factr = 1, pgtol = 1e-10)
+		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],0,x[1:],min_a,max_a,min_d,max_d,detail=detail,beta=beta,alpha=alpha)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-10)
 	else:
-		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail,alpha=alpha,beta=beta)), x0 = params_init, approx_grad = True, bounds = bounds, factr = 1, pgtol = 1e-10)
+		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail,alpha=alpha,beta=beta)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-10)
 	print cur_opt[0], cur_opt[1]
 	return cur_opt
 
