@@ -505,7 +505,7 @@ def get_beta_params(freqs,read_lists,min_samples=10):
 		print "ERROR: can't infer beta parameters unless you provide count data"
 		return None
 	num_sites_per_freq = np.array(map(len,read_lists[0]))
-	good_freqs = freqs[:,1]>min_samples
+	good_freqs = freqs[:,1]>=min_samples
 	cur_opt = opt.fmin_l_bfgs_b(lambda x: -np.sum(num_sites_per_freq[good_freqs]*beta_binom(freqs[good_freqs,0],freqs[good_freqs,1],x[0],x[1])), x0 = [.5,.5], approx_grad=True, bounds = [[1e-10,1000],[1e-10,1000]])
 	alpha = cur_opt[0][0]
 	beta = cur_opt[0][1]
