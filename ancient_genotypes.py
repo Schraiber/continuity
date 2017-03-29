@@ -263,6 +263,44 @@ def coverage_filter(read_lists, min_cutoff=2.5,max_cutoff=97.5):
 	return cuts_per_pop
 		
 
+def subsample_ref(N, freqs, read_lists, include_lower = True):
+	if not hasattr(freqs[0], "__len__"):
+		print "ERROR: Canont subsample unless you have counts"
+		return None
+	new_read_dicts = []
+	new_freqs = set()
+	for i in range(len(read_lists)):
+		new_read_dicts.append({})
+		sites_per_freq = np.array(map(len,read_lists[i]))
+		for j in range(len(freqs)):
+			if (freqs[j,1] < N) and (include_lower):
+				#just keep these sites
+				cur_count = tuple(freqs[j,:])
+				new_freqs.add(cur_count)
+				new_read_dicts[i][cur_count] = read_lists[i][j]
+				continue
+			elif not include_lower: continue
+			new_counts = st.hypergeom.rvs(freqs[j,1],freqs[j,0],N,size=sites_per_freq[j])
+			for k, count in enumerate(new_counts):
+				if (count == 0) or (count == N): continue
+				cur_count = (count,N)
+				new_freqs.add(cur_count)
+				if cur_count in new_read_dicts[i]:
+					new_read_dicts[i][cur_count].append(read_lists[i][j][k])
+				else:
+					new_read_dicts[i][cur_count] = [read_lists[i][j][k]]
+	new_freqs = sorted(new_freqs,key = lambda x: float(x[0])/x[1])
+	new_read_lists = []
+	for i in range(len(new_read_dicts)):
+		num_ind = len(read_lists[i][0][0])
+		new_read_lists.append([])
+		for freq in new_freqs:
+			try:
+				new_read_lists[-1].append(np.array(new_read_dicts[i][freq]))
+			except KeyError:
+				new_read_lists[-1].append(np.full((num_ind,2),0.)) #fill with 0 if it's not in there already...
+	return np.array(new_freqs), new_read_lists
+
 #read_dict is a list of arrays, sorted by freq
 ##the first level corresponds to the freqs in freq
 ##within each frequency, there are arrays of reads that can be passed to compute_read_like
@@ -449,9 +487,9 @@ def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail = Fa
 	bounds = np.vstack((t_bounds,e_bounds))	
 	if continuity:
 		params_init = np.delete(params_init, 1)
-		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],0,x[1:],min_a,max_a,min_d,max_d,detail=detail,beta=beta,alpha=alpha)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-10)
+		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],0,x[1:],min_a,max_a,min_d,max_d,detail=detail,beta=beta,alpha=alpha)), x0 = params_init, approx_grad = True, bounds = bounds, factr = 1000, pgtol = 1e-10)
 	else:
-		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail,alpha=alpha,beta=beta)), x0 = params_init, approx_grad = True, bounds = bounds)#, factr = 1, pgtol = 1e-10)
+		cur_opt = opt.fmin_l_bfgs_b(func = lambda x: -sum(likelihood_error(r,freqs,x[0],x[1],x[2:],min_a,max_a,min_d,max_d,detail=detail,alpha=alpha,beta=beta)), x0 = params_init, approx_grad = True, bounds = bounds, factr = 1000, pgtol = 1e-10)
 	print cur_opt[0], cur_opt[1]
 	return cur_opt
 
