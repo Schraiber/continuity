@@ -260,7 +260,7 @@ def coverage_filter(read_lists, min_cutoff=2.5,max_cutoff=97.5):
 			#Set bad sites to have zero coverage
 			#TODO: Also think about just completely removing these sites?
 			read_lists[i][j][bad_sites[j],:] = np.array([0,0])
-	return cuts_per_pop
+	return np.array(cuts_per_pop)
 		
 
 def subsample_ref(N, freqs, read_lists, include_lower = True):
@@ -300,6 +300,34 @@ def subsample_ref(N, freqs, read_lists, include_lower = True):
 			except KeyError:
 				new_read_lists[-1].append(np.full((num_ind,2),0.)) #fill with 0 if it's not in there already...
 	return np.array(new_freqs), new_read_lists
+
+
+def create_bootstrap(freqs,read_lists):
+	new_read_lists = []
+	sites_per_freq = np.array(map(len,read_lists[0]),dtype=np.float64)
+	total_sites = sum(sites_per_freq)
+	p_freq = sites_per_freq/total_sites
+	resamples_per_freq = rn.multinomial(total_sites,p_freq,1)[0]
+	resampled_sites = np.array([rn.choice(range(len(read_lists[0][i])),size=resamples_per_freq[i]) for i in range(len(freqs))])
+	bad_freqs = np.where(resamples_per_freq == 0)[0]
+	new_freqs = np.delete(freqs,bad_freqs,axis=0)
+	for i in range(len(read_lists)):
+		cur_new_read_list = []
+		for j in range(len(freqs)):
+			if resamples_per_freq[j] == 0: continue
+			cur_new_read_list.append(read_lists[i][j][resampled_sites[j]])
+		new_read_lists.append(cur_new_read_list)
+	return new_freqs, new_read_lists
+
+#this assumes that alpha and beta are fixed
+def run_bootstrap(freqs,read_lists,alpha=.5,beta=.5,n=100,num_core_per_replicate=1):
+	bootstrap_opts = []
+	for i in range(n):
+		new_freqs, new_read_lists = create_bootstrap(freqs,read_lists)
+		cur_opt = optimize_pop_params_error_parallel(new_freqs,new_read_lists,num_core=num_core_per_replicate,detail=0,alpha=alpha,beta=beta,continuity=False)
+		bootstrap_opts.append(cur_opt)
+	return bootstrap_opts
+		
 
 #read_dict is a list of arrays, sorted by freq
 ##the first level corresponds to the freqs in freq
@@ -538,7 +566,7 @@ def beta_binom(x,n,a,b):
         ans -= sp.gammaln(x+1) + sp.gammaln(n-x+1) + sp.gammaln(a) + sp.gammaln(b) + sp.gammaln(n+a+b)
         return ans
 
-def get_beta_params(freqs,read_lists,min_samples=10):
+def get_beta_params(freqs,read_lists,min_samples=15):
 	if not hasattr(freqs[0],"__len__"):
 		print "ERROR: can't infer beta parameters unless you provide count data"
 		return None
