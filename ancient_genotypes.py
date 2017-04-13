@@ -246,8 +246,8 @@ def parse_reads_by_pop(read_file_name,ind_file,cutoff=0):
 			read_lists[-1].append(np.array(read_dicts[i][freq]))
 	return unique_pops, inds, label, pops, np.array(freqs), read_lists
 
-#removes any sites that have coverage in at least one ind that falls outside the cutoff
-#operates IN PL?ACE, returns the cutoffs
+#sets samples that are outside the range 0
+#operates IN PLACE, returns the cutoffs
 def coverage_filter(read_lists, min_cutoff=2.5,max_cutoff=97.5):
 	cuts_per_pop = []
 	for i in range(len(read_lists)):
@@ -258,9 +258,9 @@ def coverage_filter(read_lists, min_cutoff=2.5,max_cutoff=97.5):
 		bad_sites = map(lambda x: (x < cuts[0]) + (x > cuts[1]),all_cov)
 		for j in range(len(bad_sites)):
 			#Set bad sites to have zero coverage
-			#TODO: Also think about just completely removing these sites?
-			read_lists[i][j][bad_sites[j],:] = np.array([0,0])
-	return np.array(cuts_per_pop)
+			if np.sum(bad_sites[j]) == 0: continue
+			read_lists[i][j][bad_sites[j]] = np.array([0,0])
+	return cuts_per_pop
 		
 
 def subsample_ref(N, freqs, read_lists, include_lower = True):
