@@ -29,7 +29,7 @@ Chrom	Pos	AF	I0412_der	I0412_anc	I0412_other	I1277_der	I1277_anc	I1277_other
 1	1045331	0.023364	0	31	0	0	0	0
 ```
 
-*EXPERIMENTAL*: You can now indicate the reference population sample size and number of derived reads. Intead of an AF column, you can add two new clumns, ``kref`` and ``nref``, which are the counts of derived alleles and the number of non-missing chromosomes in the references population. So, for example the above file might instead look like
+You can also indicate the reference population sample size and number of derived alleles. Intead of an AF column, you can add two new clumns, ``kref`` and ``nref``, which are the counts of derived alleles and the number of non-missing chromosomes in the references population. So, for example the above file might instead look like
 
 ```
 Chrom	Pos	kref	nref	I0412_der	I0412_anc	I0412_other	I1277_der	I1277_anc	I1277_other
@@ -43,7 +43,7 @@ Chrom	Pos	kref	nref	I0412_der	I0412_anc	I0412_other	I1277_der	I1277_anc	I1277_ot
 1	1031540	69	100	0	0	0	0	0	0
 1	1045331	2	100	0	31	0	0	0	0
 ```
-*NOTE THAT THE COLUMNS ``kref`` AND ``nref`` NEED TO HAVE EXACTLY THOSE HEADERS*
+*NOTE THAT THE COLUMNS ``kref`` AND ``nref`` NEED TO HAVE EXACTLY THOSE HEADERS*.
 
 ## Specifying ancient panels
 
@@ -88,15 +88,34 @@ For various reasons, such as cryptic structural variation, you may have some sit
 
 This function operates on ``read_lists`` *IN PLACE*, meaning that ``read_lists`` will be modified. The function returns a single value, which is a list of the coverage cutoffs for each individual in each population.
 
+## Fitting a prior distribuiton to the discrete reference allele frequencies
+
+If you use discrete reference allele frequencies (i.e. you specify the ``kref`` and ``nref`` columns), it is strongly recommended that you fit a beta prior to the allele frequencies. This essentially smooths out the discrete frequencies, can be very helpful for small reference sample sizes. To do so, use the function ``get_beta_params()``. This funciton has 3 input arguments:
+
+1. ``freqs``: The ``freqs`` object returned by ``parse_reads_by_pop()``
+2. ``read_lists``: the ``read_lists`` object returned by ``parse_reads_by_pop()``
+3. ``min_samples``: the minimum number of samples to be used when fitting beta parameters. This is useful if you have varying missingness across reference sites. The default setting is 15, meaning that only sites where ``nref`` > 15 will be used. It's not recommended to have ``min_samples`` < 10.
+
+This returns two numbers, the maximum likelihood estimates of the ``alpha`` and ``beta`` priors on the allele frequency distribution. For example,
+
+```
+alpha, beta = get_beta_params(freqs, read_lists, min_samples = 15)
+```
+
 ## Estimating parameters
 
-There is a function ``optimize_pop_params_error_parallel()`` that will fit the model to your data for every population. It has five arguments:
+There is a function ``optimize_pop_params_error_parallel()`` that will fit the model to your data for every population. It has five arguments regardless of whether you have continuous or discrete reference allele frequencies.:
 
 1. ``freqs``: the ``freqs`` object that's output from ``parse_reads_by_pop()``
 2. ``read_lists``: the ``read_lists`` object that's output from ``parse_reads_by_pop()``
 3. ``num_core``: the number of cores to use. Each different population is farmed out to a different core.
 4. ``detail``: whether to print some updates as the optimization is going (default ``False``)
 5. ``continuity``: whether to optimize the parameters while holding `t2 = 0` (i.e. finding the best fitting parameters assuming population continuity with the ancient sample) (default False)
+
+If you have discrete reference allele frequencies, you also need to specify the alpha and beta parameters:
+
+6. ``alpha``: the alpha parameter of the beta prior on allele frequencies in the reference population
+7. ``beta``: the beta parameter of the beta prior on allele frequencies in the reference population
 
 This will return a list of scipy.optimize objects, each one corresponding to a population in ``pops``. The important parts of each object are the 0th entry, which are the parameters of the model, and the 1st entry, which is the *negative* log likelihood of the model. The parameters are in the order ``t1``, ``t2``, ``error_for_ind_1``, ``error_for_ind_2``, and so on. 
 
@@ -113,7 +132,7 @@ opts_cont_true = optimize_pop_params_error_parallel(freqs,read_lists,pops,contin
 likelihood_false = np.array([-x[1] for x in opts_cont_false]) #minus sign is because scipy.optimize minimizes the negative log likelihood
 likelihood_true = np.array([-x[1] for x in opts_cont_true])
 LRT = 2*(likelihood_false - likelihood_true)
-p_vals = scipy.stats.logsf(LRT,1) #returns the LOG p-values
+p_vals = scipy.stats.chi2.logsf(LRT,1) #returns the LOG p-values
 ```
 
  

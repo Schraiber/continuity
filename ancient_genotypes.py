@@ -522,7 +522,10 @@ def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail = Fa
 	return cur_opt
 
 
-def optimize_pop_params_error_parallel(freqs,read_lists,num_core = 1, detail=False, continuity=False, alpha = 0.5, beta = 0.5):
+def optimize_pop_params_error_parallel(freqs,read_lists,num_core = 1, detail=False, continuity=False, alpha = None, beta = None):
+	if (hasattr(freqs[0],"__len__")) and ((alpha is None) or (beta is None)):
+		print "ERROR: Need to specify alpha and beta parameters when using discrete reference allele frequencies"
+		return 1
 	min_a, max_a, min_d, max_d = get_bounds_reads(read_lists)
 	seeds = st.randint.rvs(0,100000,size=len(read_lists))
 	#freqs, read_lists = make_read_dict_by_pop(freq,reads,pops)
