@@ -501,6 +501,45 @@ def read_prob_DP(read_likes):
 	h = z[:,num_ind-1,:]	
 	return h
 
+#NB: read_likes_* are just for a single individual!
+def update_read_prob_DP(z_old, read_likes_old, read_likes_new):
+	num_sites = len(read_likes_old)
+	num_k = len(z_old[0])
+	log_z_old = np.log(z_old)
+	z_minus = np.zeros((num_sites,num_k))
+	z = np.zeros((num_sites,num_k))
+	#with ratios
+	logRatio0 = -np.log(read_likes_old[:,0])
+	logRatio1 = np.log(read_likes_old[:,1])+logRatio0
+	logRatio2 = np.log(read_likes_old[:,2])+logRatio0
+	z_minus[:,0] = np.exp(log_z_old[:,0] + ratio0)
+	z[:,0] = z_minus[:,0]*read_likes_new[:,0]
+	#TODO: keep fixing this to hopefully be stable...
+	z_minus[:,1] = z_old[:,1]*ratio0-2*z_minus[:,0]*read_likes_old[:,1]*ratio1
+	z[:,1] = z_minus[:,1]*read_likes_new[:,0]+2*z_minus[:,0]*read_likes_new[:,1]
+	for k in range(2,num_k):
+		if k < num_k - 2:
+			print "z_minus", z_minus[0,:k]
+			print "z_old", (z_old[:,k]*ratio0)[0]
+			print "z_old log", np.exp(np.log(z_old[0,k])+np.log(ratio0[0]))
+			print "k-1", (2*z_minus[:,k-1]*ratio1)[0]
+			print "k-1 log", np.exp(np.log(z_minus[0,k-1])+np.log(ratio1[0]))
+			print "k-2", (z_minus[:,k-2]*ratio2)[0]
+			print "k-2 log", np.exp(np.log(z_minus[0,k-2])+np.log(ratio2[0]))
+			raw_input()
+			z_minus[:,k] = z_old[:,k]*ratio0-2*z_minus[:,k-1]*ratio1-z_minus[:,k-2]*ratio2
+		z[:,k] = z_minus[:,k]*read_likes_new[:,0]+2*z_minus[:,k-1]*read_likes_new[:,1]+z_minus[:,k-2]*read_likes_new[:,2]
+	#initialize the boundary
+	#z_minus[:,0] = z_old[:,0]/read_likes_old[:,0]
+	#z[:,0] = z_minus[:,0]*read_likes_new[:,0]
+	#z_minus[:,1] = (z_old[:,1]-2*z_minus[:,0]*read_likes_old[:,1])/read_likes_old[:,0]
+	#z[:,1] = z_minus[:,1]*read_likes_new[:,0]+2*z_minus[:,0]*read_likes_new[:,1]
+	#for k in range(2,num_k):
+	#	if k < num_k - 2:
+	#		z_minus[:,k] = (z_old[:,k]-2*z_minus[:,k-1]*read_likes_old[:,1]-z_minus[:,k-2]*read_likes_old[:,2])/read_likes_old[:,0]
+	#	z[:,k] = z_minus[:,k]*read_likes_new[:,0]+2*z_minus[:,k-1]*read_likes_new[:,1]+z_minus[:,k-2]*read_likes_new[:,2]
+	return z, z_minus
+
 
 def optimize_single_pop_thread(r, freqs, min_a, max_a, min_d, max_d, detail = False, continuity=False, seed = None, beta = 0.5, alpha = 0.5):
 	if seed is not None:
