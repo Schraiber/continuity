@@ -498,7 +498,7 @@ def read_prob_DP(read_likes):
 	for j in range(1,num_ind):
 		for k in range(0,(j+1)*2+1):
 			z[:,j,k] = read_likes[:,j,0]*z[:,j-1,k]+2*read_likes[:,j,1]*z[:,j-1,k-1]+read_likes[:,j,2]*z[:,j-1,k-2]
-	h = z[:,num_ind-1,:]	
+	h = z#[:,num_ind-1,:]	
 	return h
 
 #NB: read_likes_* are just for a single individual!
@@ -512,22 +512,26 @@ def update_read_prob_DP(z_old, read_likes_old, read_likes_new):
 	logRatio0 = -np.log(read_likes_old[:,0])
 	logRatio1 = np.log(read_likes_old[:,1])+logRatio0
 	logRatio2 = np.log(read_likes_old[:,2])+logRatio0
-	z_minus[:,0] = np.exp(log_z_old[:,0] + ratio0)
+	z_minus[:,0] = np.exp(log_z_old[:,0] + logRatio0)
 	z[:,0] = z_minus[:,0]*read_likes_new[:,0]
 	#TODO: keep fixing this to hopefully be stable...
-	z_minus[:,1] = z_old[:,1]*ratio0-2*z_minus[:,0]*read_likes_old[:,1]*ratio1
+	logTerm1 = log_z_old[:,1] + logRatio0
+	logTerm2 = np.log(2) + np.log(z_minus[:,0]) + logRatio1
+	z_minus[:,1] = np.exp(logTerm1)-np.exp(logTerm2)
 	z[:,1] = z_minus[:,1]*read_likes_new[:,0]+2*z_minus[:,0]*read_likes_new[:,1]
 	for k in range(2,num_k):
 		if k < num_k - 2:
-			print "z_minus", z_minus[0,:k]
-			print "z_old", (z_old[:,k]*ratio0)[0]
-			print "z_old log", np.exp(np.log(z_old[0,k])+np.log(ratio0[0]))
-			print "k-1", (2*z_minus[:,k-1]*ratio1)[0]
-			print "k-1 log", np.exp(np.log(z_minus[0,k-1])+np.log(ratio1[0]))
-			print "k-2", (z_minus[:,k-2]*ratio2)[0]
-			print "k-2 log", np.exp(np.log(z_minus[0,k-2])+np.log(ratio2[0]))
-			raw_input()
-			z_minus[:,k] = z_old[:,k]*ratio0-2*z_minus[:,k-1]*ratio1-z_minus[:,k-2]*ratio2
+			logTerm1 = log_z_old[:,k] + logRatio0
+			logTerm2 = np.log(2) + np.log(z_minus[:,k-1]) + logRatio1
+			logTerm3 = np.log(z_minus[:,k-2]) + logRatio2
+			#print logTerm1[0]
+			#print logTerm2[0]
+			#print logTerm3[0]
+			#print np.exp(logTerm1[0])
+			#print np.exp(logTerm2[0])
+			#print np.exp(logTerm3[0])
+			#raw_input()
+			z_minus[:,k] = np.exp(logTerm1) - np.exp(logTerm2) - np.exp(logTerm3)
 		z[:,k] = z_minus[:,k]*read_likes_new[:,0]+2*z_minus[:,k-1]*read_likes_new[:,1]+z_minus[:,k-2]*read_likes_new[:,2]
 	#initialize the boundary
 	#z_minus[:,0] = z_old[:,0]/read_likes_old[:,0]
