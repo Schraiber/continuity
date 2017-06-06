@@ -42,6 +42,47 @@ def ancient_sample_mix_multiple(num_modern=1000,anc_pop = 0, anc_num = 1, anc_ti
 					reads[-1][-1] = (num_reads-derived_reads,derived_reads)
 	return np.array(freq), GT, reads
 
+def ancient_sample_ghost_mix(num_modern=1000, anc_pop = 0, anc_num = 1, anc_time = 200, mix_time = 300, split_time_anc = 400, split_time_ghost = 800, f = 0.0, Ne0 = 10000, Ne1 = 10000, NeGhost = 10000, mu = 1.25e-8, length = 1000, num_rep = 1000, error = None, coverage = False, seed = None):
+	if mix_time > split_time_anc:
+		print "Mixture with ghost occurs more anciently than modern/ancient split"
+		return None
+	if mix_time > split_time_ghost:
+		print "Mixture with ghost occurs more anciently than ghost pop existed!"
+		return None
+	if f < 0 or f > 1:
+		print "Admixture fraction is not in [0, 1]"
+		return None
+	if error is None:
+		error = np.zeros(anc_num)
+	samples = [msp.Sample(population = 0, time = 0)]*num_modern
+	samples.extend([msp.Sample(population = anc_pop, time = anc_time)]*(2*anc_num))
+	pop_config = [msp.PopulationConfiguration(initial_size = Ne0), msp.PopulationConfiguration(initial_size = Ne1), msp.PopulationConfiguration(initial_size = NeGhost)]
+	divergence = [msp.MassMigration(time=mix_time, source = 0, destination = 2, proportion = f), msp.MassMigration(time = split_time_anc, source = 1, destination = 0, proportion = 1.0), msp.MassMigration(time = split_time_ghost, source = 2, destination = 0, proportion = 1.0)]
+	sims = msp.simulate(samples=samples,Ne=Ne0,population_configurations=pop_config,demographic_events=divergence,mutation_rate=mu,length=length,num_replicates=num_rep, random_seed = seed)
+	freq = []
+	reads = []
+	GT = []
+	sim_num = 0
+	for sim in sims:
+		for variant in sim.variants():
+			var_array = variant.genotypes
+			cur_freq = sum(var_array[:-(2*anc_num)])/float(num_modern)
+			if cur_freq == 0 or cur_freq == 1: continue
+			freq.append(cur_freq)
+			reads.append([])
+			GT.append([])
+			for i in range(anc_num):
+				if i == 0: cur_GT = var_array[-2:]
+				else: cur_GT = var_array[-(2*(i+1)):-(2*i)]
+				cur_GT = sum(cur_GT)
+				GT[-1].append(cur_GT)
+				reads[-1].append([None,None])
+				if coverage:
+					num_reads = st.poisson.rvs(coverage)
+					p_der = cur_GT/2.*(1-error[i])+(1-cur_GT/2.)*error[i]
+					derived_reads = st.binom.rvs(num_reads, p_der)
+					reads[-1][-1] = (num_reads-derived_reads,derived_reads)
+	return np.array(freq), GT, reads
 
 #NB: This function does not support admixture
 #NB: This function models a very simple structure where all pops are splits off of a long ancestral lineage
