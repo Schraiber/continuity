@@ -1,0 +1,305 @@
+\begin{thebibliography}{41}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Alexander et~al.(2009)Alexander, Novembre, and
+  Lange]{alexander2009fast}
+David~H Alexander, John Novembre, and Kenneth Lange.
+\newblock Fast model-based estimation of ancestry in unrelated individuals.
+\newblock \emph{Genome research}, 19\penalty0 (9):\penalty0 1655--1664, 2009.
+
+\bibitem[Allentoft et~al.(2015)Allentoft, Sikora, Sj{\"o}gren, Rasmussen,
+  Rasmussen, Stenderup, Damgaard, Schroeder, Ahlstr{\"o}m, Vinner,
+  et~al.]{allentoft2015population}
+Morten~E Allentoft, Martin Sikora, Karl-G{\"o}ran Sj{\"o}gren, Simon Rasmussen,
+  Morten Rasmussen, Jesper Stenderup, Peter~B Damgaard, Hannes Schroeder,
+  Torbj{\"o}rn Ahlstr{\"o}m, Lasse Vinner, et~al.
+\newblock Population genomics of bronze age eurasia.
+\newblock \emph{Nature}, 522\penalty0 (7555):\penalty0 167--172, 2015.
+
+\bibitem[Baird et~al.(2003)Baird, Barton, and Etheridge]{baird2003distribution}
+SJE Baird, NH~Barton, and AM~Etheridge.
+\newblock The distribution of surviving blocks of an ancestral genome.
+\newblock \emph{Theoretical population biology}, 64\penalty0 (4):\penalty0
+  451--471, 2003.
+
+\bibitem[Chang(1999)]{chang1999recent}
+Joseph~T Chang.
+\newblock Recent common ancestors of all present-day individuals.
+\newblock \emph{Advances in Applied Probability}, 31\penalty0 (4):\penalty0
+  1002--1026, 1999.
+
+\bibitem[Consortium(2015)]{10002015global}
+1000 Genomes~Project Consortium.
+\newblock A global reference for human genetic variation.
+\newblock \emph{Nature}, 526\penalty0 (7571):\penalty0 68--74, 2015.
+
+\bibitem[Dabney et~al.(2013)Dabney, Meyer, and
+  P{\"a}{\"a}bo]{dabney2013ancient}
+Jesse Dabney, Matthias Meyer, and Svante P{\"a}{\"a}bo.
+\newblock Ancient dna damage.
+\newblock \emph{Cold Spring Harbor perspectives in biology}, 5\penalty0
+  (7):\penalty0 a012567, 2013.
+
+\bibitem[Donnelly(1983)]{donnelly1983probability}
+Kevin~P Donnelly.
+\newblock The probability that related individuals share some section of genome
+  identical by descent.
+\newblock \emph{Theoretical population biology}, 23\penalty0 (1):\penalty0
+  34--63, 1983.
+
+\bibitem[Ewens(2012)]{ewens2012mathematical}
+Warren~J Ewens.
+\newblock \emph{Mathematical population genetics 1: theoretical introduction},
+  volume~27.
+\newblock Springer Science \& Business Media, 2012.
+
+\bibitem[Falush et~al.(2016)Falush, van Dorp, and Lawson]{falush2016tutorial}
+Daniel Falush, Lucy van Dorp, and Daniel Lawson.
+\newblock A tutorial on how (not) to over-interpret structure/admixture bar
+  plots.
+\newblock \emph{bioRxiv}, page 066431, 2016.
+
+\bibitem[Fu et~al.(2016)Fu, Posth, Hajdinjak, Petr, Mallick, Fernandes,
+  Furtw{\"a}ngler, Haak, Meyer, Mittnik, et~al.]{fu2016genetic}
+Qiaomei Fu, Cosimo Posth, Mateja Hajdinjak, Martin Petr, Swapan Mallick, Daniel
+  Fernandes, Anja Furtw{\"a}ngler, Wolfgang Haak, Matthias Meyer, Alissa
+  Mittnik, et~al.
+\newblock The genetic history of ice age europe.
+\newblock \emph{Nature}, 2016.
+
+\bibitem[Green et~al.(2010)Green, Krause, Briggs, Maricic, Stenzel, Kircher,
+  Patterson, Li, Zhai, Fritz, et~al.]{green2010draft}
+Richard~E Green, Johannes Krause, Adrian~W Briggs, Tomislav Maricic, Udo
+  Stenzel, Martin Kircher, Nick Patterson, Heng Li, Weiwei Zhai, Markus
+  Hsi-Yang Fritz, et~al.
+\newblock A draft sequence of the neandertal genome.
+\newblock \emph{science}, 328\penalty0 (5979):\penalty0 710--722, 2010.
+
+\bibitem[Griffiths(2003)]{griffiths2003frequency}
+RC~Griffiths.
+\newblock The frequency spectrum of a mutation, and its age, in a general
+  diffusion model.
+\newblock \emph{Theoretical population biology}, 64\penalty0 (2):\penalty0
+  241--251, 2003.
+
+\bibitem[Haak et~al.(2015)Haak, Lazaridis, Patterson, Rohland, Mallick, Llamas,
+  Brandt, Nordenfelt, Harney, Stewardson, et~al.]{haak2015massive}
+Wolfgang Haak, Iosif Lazaridis, Nick Patterson, Nadin Rohland, Swapan Mallick,
+  Bastien Llamas, Guido Brandt, Susanne Nordenfelt, Eadaoin Harney, Kristin
+  Stewardson, et~al.
+\newblock Massive migration from the steppe was a source for indo-european
+  languages in europe.
+\newblock \emph{Nature}, 522\penalty0 (7555):\penalty0 207--211, 2015.
+
+\bibitem[Jewett et~al.(2016)Jewett, Steinr{\"u}cken, and
+  Song]{jewett2016effects}
+Ethan~M Jewett, Matthias Steinr{\"u}cken, and Yun~S Song.
+\newblock The effects of population size histories on estimates of selection
+  coefficients from time-series genetic data.
+\newblock \emph{Molecular Biology and Evolution}, page msw173, 2016.
+
+\bibitem[J{\'o}nsson et~al.(2013)J{\'o}nsson, Ginolhac, Schubert, Johnson, and
+  Orlando]{jonsson2013mapdamage2}
+H{\'a}kon J{\'o}nsson, Aur{\'e}lien Ginolhac, Mikkel Schubert, Philip~LF
+  Johnson, and Ludovic Orlando.
+\newblock mapdamage2. 0: fast approximate bayesian estimates of ancient dna
+  damage parameters.
+\newblock \emph{Bioinformatics}, 29\penalty0 (13):\penalty0 1682--1684, 2013.
+
+\bibitem[Kamm et~al.(2016)Kamm, Terhorst, and Song]{kamm2016efficient}
+John~A Kamm, Jonathan Terhorst, and Yun~S Song.
+\newblock Efficient computation of the joint sample frequency spectra for
+  multiple populations.
+\newblock \emph{Journal of Computational and Graphical Statistics}, \penalty0
+  (just-accepted):\penalty0 1--37, 2016.
+
+\bibitem[Karlin and Taylor(1981)]{karlin1981second}
+Samuel Karlin and Howard~E Taylor.
+\newblock \emph{A second course in stochastic processes}.
+\newblock Elsevier, 1981.
+
+\bibitem[Kelleher et~al.(2016)Kelleher, Etheridge, and
+  McVean]{kelleher2016efficient}
+Jerome Kelleher, Alison~M Etheridge, and Gilean McVean.
+\newblock Efficient coalescent simulation and genealogical analysis for large
+  sample sizes.
+\newblock \emph{PLoS Comput Biol}, 12\penalty0 (5):\penalty0 e1004842, 2016.
+
+\bibitem[Korneliussen et~al.(2014)Korneliussen, Albrechtsen, and
+  Nielsen]{korneliussen2014angsd}
+Thorfinn~Sand Korneliussen, Anders Albrechtsen, and Rasmus Nielsen.
+\newblock Angsd: analysis of next generation sequencing data.
+\newblock \emph{BMC bioinformatics}, 15\penalty0 (1):\penalty0 356, 2014.
+
+\bibitem[Kousathanas et~al.(2017)Kousathanas, Leuenberger, Link, Sell, Burger,
+  and Wegmann]{kousathanas2017inferring}
+Athanasios Kousathanas, Christoph Leuenberger, Vivian Link, Christian Sell,
+  Joachim Burger, and Daniel Wegmann.
+\newblock Inferring heterozygosity from ancient and low coverage genomes.
+\newblock \emph{Genetics}, 205\penalty0 (1):\penalty0 317--332, 2017.
+
+\bibitem[Lazaridis et~al.(2014)Lazaridis, Patterson, Mittnik, Renaud, Mallick,
+  Kirsanow, Sudmant, Schraiber, Castellano, Lipson,
+  et~al.]{lazaridis2014ancient}
+Iosif Lazaridis, Nick Patterson, Alissa Mittnik, Gabriel Renaud, Swapan
+  Mallick, Karola Kirsanow, Peter~H Sudmant, Joshua~G Schraiber, Sergi
+  Castellano, Mark Lipson, et~al.
+\newblock Ancient human genomes suggest three ancestral populations for
+  present-day europeans.
+\newblock \emph{Nature}, 513\penalty0 (7518):\penalty0 409--413, 2014.
+
+\bibitem[Lazaridis et~al.(2016)Lazaridis, Nadel, Rollefson, Merrett, Rohland,
+  Mallick, Fernandes, Novak, Gamarra, Sirak, et~al.]{lazaridis2016genomic}
+Iosif Lazaridis, Dani Nadel, Gary Rollefson, Deborah~C Merrett, Nadin Rohland,
+  Swapan Mallick, Daniel Fernandes, Mario Novak, Beatriz Gamarra, Kendra Sirak,
+  et~al.
+\newblock Genomic insights into the origin of farming in the ancient near east.
+\newblock \emph{Nature}, 536\penalty0 (7617):\penalty0 419--424, 2016.
+
+\bibitem[Lipson and Reich(2017)]{lipson2017working}
+Mark Lipson and David Reich.
+\newblock Working model of the deep relationships of diverse modern human
+  genetic lineages outside of africa.
+\newblock \emph{Molecular Biology and Evolution}, page msw293, 2017.
+
+\bibitem[Lipson et~al.(2014)Lipson, Loh, Patterson, Moorjani, Ko, Stoneking,
+  Berger, and Reich]{lipson2014reconstructing}
+Mark Lipson, Po-Ru Loh, Nick Patterson, Priya Moorjani, Ying-Chin Ko, Mark
+  Stoneking, Bonnie Berger, and David Reich.
+\newblock Reconstructing austronesian population history in island southeast
+  asia.
+\newblock \emph{Nature communications}, 5, 2014.
+
+\bibitem[Mathieson et~al.(2015)Mathieson, Lazaridis, Rohland, Mallick,
+  Patterson, Roodenberg, Harney, Stewardson, Fernandes, Novak,
+  et~al.]{mathieson2015genome}
+Iain Mathieson, Iosif Lazaridis, Nadin Rohland, Swapan Mallick, Nick Patterson,
+  Song{\"u}l~Alpaslan Roodenberg, Eadaoin Harney, Kristin Stewardson, Daniel
+  Fernandes, Mario Novak, et~al.
+\newblock Genome-wide patterns of selection in 230 ancient eurasians.
+\newblock \emph{Nature}, 528\penalty0 (7583):\penalty0 499--503, 2015.
+
+\bibitem[Meyer et~al.(2012)Meyer, Kircher, Gansauge, Li, Racimo, Mallick,
+  Schraiber, Jay, Pr{\"u}fer, De~Filippo, et~al.]{meyer2012high}
+Matthias Meyer, Martin Kircher, Marie-Theres Gansauge, Heng Li, Fernando
+  Racimo, Swapan Mallick, Joshua~G Schraiber, Flora Jay, Kay Pr{\"u}fer, Cesare
+  De~Filippo, et~al.
+\newblock A high-coverage genome sequence from an archaic denisovan individual.
+\newblock \emph{Science}, 338\penalty0 (6104):\penalty0 222--226, 2012.
+
+\bibitem[Nielsen and Signorovitch(2003)]{nielsen2003correcting}
+Rasmus Nielsen and James Signorovitch.
+\newblock Correcting for ascertainment biases when analyzing snp data:
+  applications to the estimation of linkage disequilibrium.
+\newblock \emph{Theoretical population biology}, 63\penalty0 (3):\penalty0
+  245--255, 2003.
+
+\bibitem[Nielsen et~al.(2012)Nielsen, Korneliussen, Albrechtsen, Li, and
+  Wang]{nielsen2012snp}
+Rasmus Nielsen, Thorfinn Korneliussen, Anders Albrechtsen, Yingrui Li, and Jun
+  Wang.
+\newblock Snp calling, genotype calling, and sample allele frequency estimation
+  from new-generation sequencing data.
+\newblock \emph{PloS one}, 7\penalty0 (7):\penalty0 e37558, 2012.
+
+\bibitem[Patterson et~al.(2012)Patterson, Moorjani, Luo, Mallick, Rohland,
+  Zhan, Genschoreck, Webster, and Reich]{patterson2012ancient}
+Nick Patterson, Priya Moorjani, Yontao Luo, Swapan Mallick, Nadin Rohland,
+  Yiping Zhan, Teri Genschoreck, Teresa Webster, and David Reich.
+\newblock Ancient admixture in human history.
+\newblock \emph{Genetics}, 192\penalty0 (3):\penalty0 1065--1093, 2012.
+
+\bibitem[Peter(2016)]{peter2016admixture}
+Benjamin~M Peter.
+\newblock Admixture, population structure, and f-statistics.
+\newblock \emph{Genetics}, 202\penalty0 (4):\penalty0 1485--1501, 2016.
+
+\bibitem[Pickrell and Pritchard(2012)]{pickrell2012inference}
+Joseph~K Pickrell and Jonathan~K Pritchard.
+\newblock Inference of population splits and mixtures from genome-wide allele
+  frequency data.
+\newblock \emph{PLoS Genet}, 8\penalty0 (11):\penalty0 e1002967, 2012.
+
+\bibitem[Pinhasi et~al.(2015)Pinhasi, Fernandes, Sirak, Novak, Connell,
+  Alpaslan-Roodenberg, Gerritsen, Moiseyev, Gromov, Raczky,
+  et~al.]{pinhasi2015optimal}
+Ron Pinhasi, Daniel Fernandes, Kendra Sirak, Mario Novak, Sarah Connell,
+  Song{\"u}l Alpaslan-Roodenberg, Fokke Gerritsen, Vyacheslav Moiseyev, Andrey
+  Gromov, P{\'a}l Raczky, et~al.
+\newblock Optimal ancient dna yields from the inner ear part of the human
+  petrous bone.
+\newblock \emph{PloS one}, 10\penalty0 (6):\penalty0 e0129102, 2015.
+
+\bibitem[Pritchard et~al.(2000)Pritchard, Stephens, and
+  Donnelly]{pritchard2000inference}
+Jonathan~K Pritchard, Matthew Stephens, and Peter Donnelly.
+\newblock Inference of population structure using multilocus genotype data.
+\newblock \emph{Genetics}, 155\penalty0 (2):\penalty0 945--959, 2000.
+
+\bibitem[Racimo et~al.(2016)Racimo, Renaud, and Slatkin]{racimo2016joint}
+Fernando Racimo, Gabriel Renaud, and Montgomery Slatkin.
+\newblock Joint estimation of contamination, error and demography for nuclear
+  dna from ancient humans.
+\newblock \emph{PLoS Genet}, 12\penalty0 (4):\penalty0 e1005972, 2016.
+
+\bibitem[Rasmussen et~al.(2014)Rasmussen, Anzick, Waters, Skoglund, DeGiorgio,
+  Stafford~Jr, Rasmussen, Moltke, Albrechtsen, Doyle,
+  et~al.]{rasmussen2014genome}
+Morten Rasmussen, Sarah~L Anzick, Michael~R Waters, Pontus Skoglund, Michael
+  DeGiorgio, Thomas~W Stafford~Jr, Simon Rasmussen, Ida Moltke, Anders
+  Albrechtsen, Shane~M Doyle, et~al.
+\newblock The genome of a late pleistocene human from a clovis burial site in
+  western montana.
+\newblock \emph{Nature}, 506\penalty0 (7487):\penalty0 225--229, 2014.
+
+\bibitem[Rohde et~al.(2004)Rohde, Olson, and Chang]{rohde2004modelling}
+Douglas~LT Rohde, Steve Olson, and Joseph~T Chang.
+\newblock Modelling the recent common ancestry of all living humans.
+\newblock \emph{Nature}, 431\penalty0 (7008):\penalty0 562, 2004.
+
+\bibitem[Sawyer et~al.(2012)Sawyer, Krause, Guschanski, Savolainen, and
+  P{\"a}{\"a}bo]{sawyer2012temporal}
+Susanna Sawyer, Johannes Krause, Katerina Guschanski, Vincent Savolainen, and
+  Svante P{\"a}{\"a}bo.
+\newblock Temporal patterns of nucleotide misincorporations and dna
+  fragmentation in ancient dna.
+\newblock \emph{PloS one}, 7\penalty0 (3):\penalty0 e34131, 2012.
+
+\bibitem[Schraiber et~al.(2016)Schraiber, Evans, and
+  Slatkin]{schraiber2016bayesian}
+Joshua~G Schraiber, Steven~N Evans, and Montgomery Slatkin.
+\newblock Bayesian inference of natural selection from allele frequency time
+  series.
+\newblock \emph{Genetics}, 203\penalty0 (1):\penalty0 493--511, 2016.
+
+\bibitem[Sj{\"o}din et~al.(2014)Sj{\"o}din, Skoglund, and
+  Jakobsson]{sjodin2014assessing}
+Per Sj{\"o}din, Pontus Skoglund, and Mattias Jakobsson.
+\newblock Assessing the maximum contribution from ancient populations.
+\newblock \emph{Molecular biology and evolution}, page msu059, 2014.
+
+\bibitem[Skoglund et~al.(2012)Skoglund, Malmstr{\"o}m, Raghavan, Stor{\aa},
+  Hall, Willerslev, Gilbert, G{\"o}therstr{\"o}m, and
+  Jakobsson]{skoglund2012origins}
+Pontus Skoglund, Helena Malmstr{\"o}m, Maanasa Raghavan, Jan Stor{\aa}, Per
+  Hall, Eske Willerslev, M~Thomas~P Gilbert, Anders G{\"o}therstr{\"o}m, and
+  Mattias Jakobsson.
+\newblock Origins and genetic legacy of neolithic farmers and hunter-gatherers
+  in europe.
+\newblock \emph{Science}, 336\penalty0 (6080):\penalty0 466--469, 2012.
+
+\bibitem[Skoglund et~al.(2014)Skoglund, Malmstr{\"o}m, Omrak, Raghavan,
+  Valdiosera, G{\"u}nther, Hall, Tambets, Parik, Sj{\"o}gren,
+  et~al.]{skoglund2014genomic}
+Pontus Skoglund, Helena Malmstr{\"o}m, Ay{\c{c}}a Omrak, Maanasa Raghavan,
+  Cristina Valdiosera, Torsten G{\"u}nther, Per Hall, Kristiina Tambets,
+  J{\"u}ri Parik, Karl-G{\"o}ran Sj{\"o}gren, et~al.
+\newblock Genomic diversity and admixture differs for stone-age scandinavian
+  foragers and farmers.
+\newblock \emph{Science}, 344\penalty0 (6185):\penalty0 747--750, 2014.
+
+\end{thebibliography}

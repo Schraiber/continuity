@@ -1,0 +1,372 @@
+\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
+%\geometry{landscape}                		% Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+								% TeX will automatically convert eps --> pdf in pdflatex		
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage[nolists]{endfloat}
+\usepackage{natbib}
+\usepackage{lineno}
+\usepackage{setspace}
+
+
+%SetFonts
+
+%SetFonts
+
+
+\title{Assessing the relationship of ancient and modern populations}
+\author{Joshua G. Schraiber}
+\date{Started on October 22, 2016. Compiled on \today}							% Activate to display a given date or no date
+
+\doublespacing
+\linenumbers
+
+\begin{document}
+\maketitle
+
+\abstract
+Genetic material sequenced from ancient samples is revolutionizing our understanding of the recent evolutionary past. However, ancient DNA is often degraded, resulting in low coverage, error-prone sequencing. Several solutions exist to this problem, ranging from simple approach such as selecting a read at random for each site to more complicated approaches involving genotype likelihoods. In this work, we present a novel method for assessing the relationship of an ancient sample with a modern population while accounting for sequencing error and post-mortem damage by analyzing raw read from multiple ancient individuals simultaneously. We show that when analyzing SNP data, it is better to sequence more ancient samples to low coverage: two samples sequenced to 0.5x coverage provide better resolution than a single sample sequenced to 2x coverage. We also examined the power to detect whether an ancient sample is directly ancestral to a modern population, finding that with even a few high coverage individuals, even ancient samples that are very slightly diverged from the modern population can be detected with ease. When we applied our approach to European samples, we found that no ancient samples represent direct ancestors of modern Europeans. We also found that, as shown previously, the most ancient Europeans appear to have had the smallest effective population sizes, indicating a role for agriculture in modern population growth.
+
+\section{Introduction}
+Ancient DNA (aDNA) is now ubiquitous in population genetics. Advances in DNA isolation \citep{dabney2013ancient}, library preparation \citep{meyer2012high}, bone sampling \citep{pinhasi2015optimal}, and sequence capture \cite{haak2015massive} make it possible to obtain genome-wide data from hundreds of samples \citep{haak2015massive, mathieson2015genome, allentoft2015population, fu2016genetic}. Analysis of these data can provide new insight into recent evolutionary processes which leave faint signatures in modern genomes, including natural selection \citep{schraiber2016bayesian, jewett2016effects} and population replacement \citep{sjodin2014assessing, lazaridis2014ancient}. 
+
+One of the most powerful uses of ancient DNA is to assess the continuity of ancient and modern populations. In many cases, it is unclear whether populations that occupied an area in the past are the direct ancestors of the current inhabitants of that area. However, this can be next to impossible to assess using only modern genomes. Questions of population continuity and replacement have particular relevance for the spread of cultures and technology in humans \citep{lazaridis2016genomic}. For instance, recent work showed that modern South Americans are descended from people associated Clovis culture that inhabited North America over 10,000 years ago, providing further evidence toward our understanding of the peopling of the Americas \citep{rasmussen2014genome}.
+
+Despite its utility in addressing difficult-to-answer questions in evolutionary biology, aDNA also has several limitations. Most strikingly, DNA decays rapidly following the death of an organism, resulting in highly fragmented, degraded starting material when sequencing \citep{sawyer2012temporal}. Thus, ancient data is frequently sequenced to low coverage and has a significantly higher rate of misleadingly called nucleotides than modern samples. When working with diploid data, as in aDNA extracted from plants and animals, the low coverage prevents genotypes from being called called with confidence.
+
+Several strategies are commonly used to address the low-coverage data. One of the most common approaches is to sample a random read from each covered site and use that as a haploid genotype call \citep{skoglund2012origins, haak2015massive, mathieson2015genome, allentoft2015population, fu2016genetic, lazaridis2016genomic}. Many common approaches to the analyses of ancient DNA, such as the usage of F-statistics \citep{green2010draft, patterson2012ancient}, are designed with this kind of dataset in mind. As shown by \citet{peter2016admixture}, F-statistics can be interpreted as linear combinations of simpler summary statistics and can often be understood in terms of testing a tree-like structure relating populations. Nonetheless, despite the simplicity and appeal of this approach, it has several drawbacks. Primarily, it throws away reads from sites that are covered more than once, resulting in a potential loss of information from expensive, difficult-to-acquire data. These approach are also strongly impacted by sequencing error, post-mortem damage, and contamination.
+
+On the other hand, several approaches exist to either work with genotype likelihoods or the raw read data. Genotype likelihoods are the probabilities of the read data at a site given each of the three possible diploid genotypes at that site. They can be used in calculation of population genetic statistics or likelihood functions to average over uncertainty in the genotype \citep{korneliussen2014angsd}. However, many such approaches assume that genotype likelihoods are fixed by the SNP calling algorithm (although they may be recalibrated to account for aDNA-specific errors, as in \citet{jonsson2013mapdamage2}). However, with low coverage data, an increase in accuracy is expected if genotype likelihoods are co-estimated with other parameters of interest, due to the covariation between processes that influence read quality and genetic diversity, such as contamination.
+
+A recent method that coestimates demographic parameters along with error and contamination rates by using genotype likelihoods showed that there can be significant power to assess the relationship of a single ancient sample to a modern population \citep{racimo2016joint}. Nonetheless, they found that for very low coverage data, inferences were not reliable. Thus, they were unable to apply their method to the large number of extremely low coverage ( $<$ 1x) genomes that are available. Moreover, they were unable to explore the tradeoffs that come with a limited budget: can we learn more by sequencing fewer individuals to high coverage, or more individuals at lower coverage?
+
+Here, we develop a novel maximum likelihood approach for analyzing low coverage ancient DNA in relation to a modern population. We work directly with raw read data and explicitly model errors due to sequencing and port-mortem damage. Crucially, our approach incorporates data from multiple individuals that belong to the same ancient population, which we show substantially increases power and reduces error in parameter estimates. We then apply our new methodology to ancient human data, and show that we can perform accurate demographic inference even from very low coverage samples by analyzing them jointly. 
+
+\section{Methods}
+\subsection{Sampling alleles in ancient populations}
+We assume a scenario in which allele frequencies are known with high accuracy in a modern population. Suppose that an allele is known to be at frequency $x \in (0, 1)$ in the modern population, and we wish to compute the probability of obtaining $k$ copies of that allele in a sample of $n$ ($0 \leq k \leq n$) chromosomes from an ancient population. As we show in the Appendix, conditioning on the frequency of the allele in the modern population minimizes the impact of ascertainment, and allows this approach to be used for SNP capture data. 
+
+To calculate the sampling probability, we assume a simple demographic model in which the ancient individual belongs to a population that split off from the modern population $\tau_1$ generations ago, and subsequently existed as an isolated population for $\tau_2$ generations. Further, we assume that the modern population has effective size $N_e^{(1)}$ and that the ancient population has effective size $N_e^{(2)}$, and measure time in diffusion units, $t_i = \tau_i/(2N_e^{(i)})$. If we know the conditional probability that an allele is at frequency $y$ in the ancient sample, given that it is at frequency $x$, denoted $f(y; x, t_1, t_2)$, then the sampling probability is simply an integral,
+\begin{align}
+P_{n,k}(x) &= \int_0^1 \binom{n}{k}y^k(1-y)^{n-k}f(y; x, t_1, t_2)dy \nonumber \\
+&= \binom{n}{k}\mathbb{E}_x\left(Y^k(1-Y)^{n-k}; t_1, t_2 \right) \nonumber \\
+&\equiv \binom{n}{k}p_{n,k}(t_1,t_2)
+\end{align}
+Thus, we must compute the binomial moments of the allele frequency distribution in the ancient population. In the Appendix, we show that this can be computed using matrix exponentiation, 
+\begin{equation}
+p_{n,k}(t_1,t_2) = \left(e^{Q t_2}e^{Q^\downarrow t_1}\mathbf{h}_n \right)_i,
+\label{expectation_matrices}
+\end{equation}
+where $(\mathbf{v})_i$ indicates the $i$th element of the vector $\mathbf{v}$, $\mathbf{h}_n = ((1-x)^n, x(1-x)^{n-1},\ldots, x^n)^T$ and $Q$ and $Q^\downarrow$ are the sparse matrices
+\[
+Q_{ij} = \begin{cases}
+\frac{1}{2}i(i-1) & \text{if } j = i - 1 \\
+-i(n-i) & \text{if } j = i \\
+\frac{1}{2}(n-i)(n-i-1) & \text{if } j = i + 1 \\
+0 & \text{else}
+\end{cases}
+\]
+and
+\[
+Q^\downarrow_{ij} = \begin{cases}
+\frac{1}{2}i(i-1) & \text{if } j = i -1 \\
+-i(n-i+1) & \text{if } j = i \\
+\frac{1}{2}(n-i+1)(n-i) &\text{if } j = i + 1 \\
+0 & \text{else}.
+\end{cases}
+\]
+This result has an interesting interpretation: the matrix $Q^\downarrow$ can be thought of as evolving the allele frequencies back in time from the modern population to the common ancestor of the ancient and modern populations, while $Q$ evolves the allele frequencies forward in time from the common ancestor to the ancient population (Fig \ref{generative_model}).
+
+\begin{figure}[h] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=.9\textwidth]{backward_forward_v2.pdf} 
+	\caption{The generative model. Alleles are found at frequency $x$ in the modern population and are at frequency $y$ in the ancient population. The modern population has effective size $N_e^{(1)}$ and has evolved for $\tau_1$ generations since the common ancestor of the modern and ancient populations, while the ancient population is of size $N_e^{(2)}$ and has evolved for $\tau_2$ generations. Ancient diploid samples are taken and sequenced to possibly low coverage, with errors. Arrows indicate that the sampling probability can be calculated by evolving alleles \emph{backward} in time from the modern population and then forward in time to the ancient population.}
+	\label{generative_model}
+\end{figure}
+
+Because of the fragmentation and degradation of DNA that is inherent in obtaining sequence data from ancient individuals, it is difficult to obtain the high coverage data necessary to make high quality genotype calls from ancient individuals. To address this, we instead work directly with raw read data, and average over all the possible genotypes weighted by their probability of producing the data. Specifically, we follow \citet{nielsen2012snp} in modeling the probability of the read data in the ancient population, given the allele frequency at site $l$ as
+\[
+\mathbb{P}(R_l | k) = \sum_{g_{1,l} = 0}^2 \ldots \sum_{g_{n,l} = 0}^2 \mathbb{I}\left(\sum_{i=1}^m g_{i,l} = k\right) \prod_{i=1}^n \binom{2}{g_{i,l}}\mathbb{P}(R_{i,l} | g_{i,l}),
+\]
+where $R_{i,l}= (a_{i,l}, d_{i,l})$ are the counts of ancestral and derived reads in individual $i$ at site $l$, $g_{i,l} \in \{0, 1, 2\}$ indicates the possible genotype of individual $i$ at site $l$ (i.e. 0 = homozygous ancestral, 1 = heterozygous, 2 = homozygous derived), and $\mathbb{P}(R_{i,l} | g_{i,l})$ is the probability of the read data at site $l$ for individual $i$, assuming that the individual truly has genotype $g_{i,l}$. We use a binomial sampling with error model, in which the probability that a truly derived site appears ancestral (and vice versa) is given by $\epsilon$. We emphasize that the parameter $\epsilon$ will capture both sequencing error as well as post-mortem damage (c.f. \citet{racimo2016joint} who found that adding an additional parameter to specifically model post-mortem damage does not improve inferences). Thus,
+\[
+\mathbb{P}(R | g) = \binom{a + d}{d} p_{g}^d(1-p_{g})^a
+\]
+with
+\begin{align*}
+p_0 &= \epsilon\\
+p_1 &= \frac{1}{2}\\
+p_2 &= 1-\epsilon\\
+\end{align*}.
+
+Combining these two aspects together by summing over possible allele frequencies weighted by their probabilities, we obtain our likelihood of the ancient data,
+\begin{equation}
+L(D) = \prod_{l=1}^L \sum_{k = 0}^n \mathbb{P}(R_l | k) p_{n,k}(x_l).
+\label{likelihood}
+\end{equation}
+
+\section{Results}
+
+\subsection{Impact of coverage and number of samples on inferences}
+
+To explore the tradeoff of sequencing more individuals at lower depth compared to fewer individuals at higher coverage, we performed simulations using \texttt{msprime} \citep{kelleher2016efficient} combined with custom scripts to simulate error and low coverage data. Briefly, we assumed a Poisson distribution of reads at every site with mean given by the coverage, and then simulated reads by drawing from the binomial distribution described in the Methods.
+
+ First, we examined the impact of coverage and number of samples on the ability to recover the drift times in the modern and the ancient populations. Figure \ref{RMSE} shows results for data simulated with $t_1 = 0.02$ and $t_2 = 0.05$, corresponding to an ancient individual who died $300$ generations ago from population of effective size $1000$. The populations split $400$ generations ago, and the modern population has an effective size of $10000$. We simulated approximately 180000 SNPs by simulating 100000 500 base pair fragments. Inferences of $t_1$ can be relatively accurate even with only one low coverage ancient sample (Figure \ref{RMSE}A). However, inferences of $t_2$ benefit much more from increasing the number of ancient samples, as opposed to coverage (Figure \ref{RMSE}B). In particular, two individuals sequenced to $0.5$x coverage have a much lower error than a single individual sequenced to $2$x coverage. To explore this effect further, we derived the sampling probability of alleles covered by exactly one sequencing read (see Appendix). We found that sites covered only once have no information about $t_2$, suggesting that evidence of  heterozygosity is very important for inferences about $t_2$. 
+
+\begin{figure}[h] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=\textwidth]{RMSE_Figure.pdf} 
+   \caption{Impact of sampling scheme on parameter estimation error. In each panel, the $x$ axis represents the number of simulated ancient samples, while the $y$ axis shows the relative root mean square error for each parameter. Each different line corresponds to individuals sequenced to different depth of coverage. Panel A shows results for $t_1$ while panel B shows results for $t_2$. Simulated parameters are $t_1 = 0.02$ and $t_2 = 0.05$.}
+   \label{RMSE}
+\end{figure}
+
+We next examined the impact of coverage and sampling on the power to reject the hypothesis that the ancient individuals came from a population that is directly ancestral to the modern population. We analyzed both low coverage (0.5x) and higher coverage (4x) datasets consisting of 1 (for both low and high coverage samples) or 5 individuals (only for low coverage). We simulated data with parameters identical to the previous experiment, except we now examined the impact of varying the age of the ancient sample from 0 generations ago through to the split time with the modern population. We then performed a likelihood ratio test comparing the null model of continuity, in which $t_2 = 0$, to a model in which the ancient population is not continuous. Figure \ref{continuity} shows the power of the likelihood ratio test. For a single individual sequenced to low coverage, we see that the test only has power for very recently sampled ancient individuals (i.e. samples that are highly diverged from the modern population). However, the power increases dramatically as the number of individuals or the coverage per individual is increased; sequencing 5 individuals to 0.5x coverage results in essentially perfect power to reject continuity. Nonetheless, for samples that are very close to the divergence time, it will be difficult to determine if they are ancestral to the modern population or not, because differentiation is incomplete.
+
+\begin{figure}[h] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=\textwidth]{continuity_rejection.pdf} 
+   \caption{Impact of sampling scheme on rejecting population continuity. The $x$ axis represents the age of the ancient sample in generations, with 0 indicating a modern sample and 400 indicating a sample from exactly at the split time 400 generations ago. The $y$ axis shows the proportion of simulations in which we rejected the null hypothesis of population continuity. Each line shows different sampling schemes, as explained in the legend.}
+   \label{continuity}
+\end{figure}
+
+\subsection{Impact of admixture}
+We examined two possible violations of the model to assess their impact on inference. In many situations, there may have been secondary contact between the population from which the ancient sample is derived and the modern population used as a reference. We performed simulations of this situation by modifying the previous simulations to include subsequent admixture from the ancient population to the modern population 200 generations ago (NB: this admixture occurred \emph{more recently} than the ancient sample). In Figure \ref{admixture}, we show the results for admixture proportions ranging from $0$ to $50\%$. Counterintuitively, estimates of $t_1$ initially \emph{decrease} before again increasing. This is likely a result of the increased heterozygosity caused by admixture, which acts to artificially inflate the effective size of the modern population, and thus decrease $t_1$. As expected, $t_2$ is estimated to be smaller the more admixture there is; indeed, for an admixture rate of $100\%$, the modern and ancient samples are continuous. The impact on $t_2$ appears to be linear, and is well approximated by $(1-f)t_2$ if the admixture fraction is $f$. 
+
+\begin{figure}[h] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=\textwidth]{t1_t2_admixture.pdf} 
+   \caption{Impact of admixture from the ancient population on inferred parameters. The $x$ axis shows the admixture proportion and the $y$ axis shows the average parameter estimate across simulations. Each line corresponds to a different sampling strategy, as indicated in the legend. Panel A shows results for $t_1$ and Panel B shows results for $t_2$.}
+   \label{admixture}
+\end{figure}
+
+In other situations, there may be admixture from an unsampled ``ghost'' population into the modern population. If the ghost admixture is of a high enough proportion, it is likely to cause a sample that is in fact a member of a directly ancestral population to not appear to be ancestral. We explored this situation by augmenting our simulations in which the ancient sample is continuous with an outgroup population diverged from the modern population $0.04$ time units ago (corresponding to 800 generations ago) and contributed genes to the modern population $0.01$ time units ago (corresponding to 200 generations ago). We then assessed the impact on rejecting continuity using the likelihood ratio test (Figure \ref{ghost}). As expected, we see that low-power sampling strategies (such as a single individual sequenced to low coverage) are relatively unimpacted by ghost admixture. However, even relatively powerful sampling strategies can be robust to ghost admixture up to approximately $10\%$.  
+
+\begin{figure}[h] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=\textwidth]{continuity_rejection_ghost.pdf} 
+   \caption{Impact of ghost admixture on falsely rejecting continuity. The $x$ axis shows the admixture proportion from the ghost population, and the $y$ axis shows the fraction of simulations in which continuity was rejected. Each line corresponds to a different sampling strategy, as indicated in the legend.}
+   \label{ghost}
+\end{figure}
+
+\subsection{Application to ancient humans}
+We applied our approach to ancient human data from \citet{mathieson2015genome}, which is primarily derived from a SNP capture approach that targeted 1.2 million SNPs. Based on sampling location and associated archeological materials, the individuals were grouped into \emph{a priori} panels, which we used to specify population membership when analyzing individuals together. We analyzed all samples for their relationship to the CEU individuals from the 1000 Genomes Project \citep{10002015global}. Based on our results that suggested that extremely low coverage samples would yield unreliable estimates, we excluded panels that are composed of only a single individual sequenced to less than 2x coverage.
+
+We computed maximum likelihood estimates of $t_1$ and $t_2$ for individuals as grouped into populations (Figure \ref{pops_together}A; Table \ref{params_table}). We observe that $t_2$ is significantly greater than 0 for all populations. Thus, none of these populations are consistent with directly making up a large proportion of the ancestry of modern CEU individuals. Strikingly, we see that $t_2 \gg t_1$, despite the fact that the ancient samples must have existed for fewer generations since the population split than the modern samples. This suggests that all of the ancient populations are characterized by extremely small effective population sizes.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llllllll}
+pop                     & cov    & date     & $t_1$ & $t_2$ & lnL          & $t_1$ (cont) & lnL (cont)  \\ \hline
+Alberstedt\_LN          & 12.606 & 4417.000 & 0.005 & 0.013 & -779411.494  & 0.006       & -779440.143  \\
+Anatolia\_Neolithic     & 3.551  & 8317.500 & 0.010 & 0.042 & -9096440.714 & 0.044       & -9106156.877 \\
+Baalberge\_MN           & 0.244  & 5684.333 & 0.001 & 0.071 & -201575.306  & 0.007       & -201750.419  \\
+Bell\_Beaker\_Germany   & 1.161  & 4308.444 & 0.003 & 0.010 & -1834486.744 & 0.008       & -1834652.858 \\
+BenzigerodeHeimburg\_LN & 0.798  & 4209.750 & 0.003 & 0.032 & -346061.545  & 0.007       & -346134.356  \\
+Corded\_Ware\_Germany   & 2.250  & 4372.833 & 0.005 & 0.023 & -2139002.723 & 0.017       & -2139858.192 \\
+Esperstedt\_MN          & 30.410 & 5238.000 & 0.005 & 0.029 & -975890.329  & 0.009       & -976047.889  \\
+Halberstadt\_LBA        & 5.322  & 3082.000 & 0.003 & 0.015 & -558966.522  & 0.004       & -558993.078  \\
+Hungary\_BA             & 3.401  & 3695.750 & 0.004 & 0.023 & -789754.969  & 0.010       & -789939.889  \\
+Hungary\_CA             & 5.169  & 4869.500 & 0.005 & 0.037 & -504413.094  & 0.010       & -504549.603  \\
+Hungary\_EN             & 4.033  & 7177.000 & 0.007 & 0.036 & -3478429.262 & 0.033       & -3481855.461 \\
+Hungary\_HG             & 5.807  & 7763.000 & 0.000 & 0.147 & -469887.471  & 0.015       & -471652.083  \\
+Iberia\_Chalcolithic    & 1.686  & 4630.625 & 0.005 & 0.037 & -2351769.869 & 0.028       & -2354249.543 \\
+Iberia\_EN              & 4.875  & 7239.500 & 0.005 & 0.053 & -1483274.628 & 0.030       & -1485675.934 \\
+Iberia\_MN              & 5.458  & 5765.000 & 0.004 & 0.039 & -1491407.962 & 0.023       & -1492793.179 \\
+Iberia\_Mesolithic      & 21.838 & 7830.000 & 0.009 & 0.141 & -720759.133  & 0.030       & -723091.935  \\
+Karelia\_HG             & 2.953  & 7265.000 & 0.008 & 0.125 & -652952.676  & 0.033       & -655352.439  \\
+LBK\_EN                 & 2.894  & 7123.429 & 0.007 & 0.039 & -3656617.954 & 0.033       & -3660838.639 \\
+Motala\_HG              & 2.207  & 7729.500 & 0.003 & 0.126 & -1477338.076 & 0.068       & -1489573.895 \\
+Poltavka                & 2.211  & 4684.500 & 0.008 & 0.029 & -1334662.071 & 0.020       & -1335358.630 \\
+Potapovka               & 0.267  & 4076.500 & 0.004 & 0.063 & -220112.816  & 0.011       & -220251.379  \\
+Samara\_Eneolithic      & 0.463  & 6615.000 & 0.007 & 0.078 & -362161.674  & 0.020       & -362689.209  \\
+Scythian\_IA            & 3.217  & 2305.000 & 0.012 & 0.011 & -492961.306  & 0.013       & -492973.694  \\
+Srubnaya                & 1.662  & 3653.273 & 0.004 & 0.015 & -2578065.957 & 0.013       & -2578645.731 \\
+Srubnaya\_Outlier       & 0.542  & 3704.500 & 0.006 & 0.019 & -285828.766  & 0.008       & -285851.523  \\
+Unetice\_EBA            & 1.320  & 4024.786 & 0.002 & 0.012 & -1676798.610 & 0.008       & -1677026.310 \\
+Yamnaya\_Samara         & 1.937  & 4990.500 & 0.008 & 0.033 & -2440183.354 & 0.028       & -2442192.801
+\end{tabular}
+\caption{Details of populations included in analysis. ``pop'' is population name, ``cov'' is mean coverage of individuals in the population, ``date'' is mean date of individuals in the population, ``$t_1$'' is the maximum likelihood estimate of $t_1$ in the full model, ``$t_2$'' is the maximum likelihood estimate of $t_2$ in the full model, ``LnL'' is the maximum likelihood value in the full model, ``$t_1$ (cont)'' is the maximum likelihood estimate of $t_1$ in the model where $t_2 = 0$, ``LnL'' is the maximum likelihood value in the model where $t_2 = 0$.}
+\label{params_table}
+\end{table}
+
+\begin{figure}[h] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=\textwidth]{parameters_and_age.pdf} 
+   \caption{Parameters of the model inferred from ancient West Eurasian samples. Panel A shows $t_1$ on the x-axis and $t_2$ on the y-axis, with each point corresponding to a population as indicated in the legend. Numbers in the legend correspond to the mean date of all samples in the population. Panels B and C show scatterplots of the mean age of the samples in the population (x-axis) against $t_1$ and $t_2$, respectively. Points are described by the same legend as Panel A.}
+   \label{pops_together}
+\end{figure}
+
+We further explored the relationship between the dates of the ancient samples and the parameters of the model by plotting $t_1$ and $t_2$ against the mean sample date of all samples in that population (Figure \ref{pops_together}B, C). We expected to find that $t_1$ correlated with sample age, under the assumption that samples were members of relatively short-lived populations that diverged from the ``main-stem'' of CEU ancestry. Instead, we see no correlation between $t_1$ and sample time, suggesting that the relationship of these populations to the CEU is complicated and not summarized well by the age of the samples. On the other hand, we see a strong positive correlation between $t_2$ and sampling time ($p < 1\times10^{-4}$). Because $t_2$ is a compound parameter, it is difficult to directly interpret this relationship. However, it is consistent with the most ancient samples belonging to populations with the smallest effective sizes, consistent with previous observations \citep{skoglund2014genomic}. 
+
+Finally, we examined the impact of grouping individuals into populations in real data.  We see that estimates of $t_1$ for low coverage samples are typically lower when analyzed individually than when pooled with other individuals of the same panel (Figure \ref{sep_vs_pops}A), suggesting a slightly downward bias in estimating $t_1$ for low coverage samples. On the other hand, there is substantial bias toward overestimating $t_2$ when analyzing samples individually, particularly for very low coverage samples (Figure \ref{sep_vs_pops}B). This again shows that for estimates that rely on heterozygosity in ancient populations, pooling many low coverage individuals can significantly improve estimates.
+
+\begin{figure}[h] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=\textwidth]{sep_vs_pops.pdf} 
+   \caption{Impact of pooling individuals into populations when estimating model parameters from real data. In both panels, the x-axis indicates the parameter estimate when individuals are analyzed separately, while the y-axis indicates the parameter estimate when individuals are grouped into populations. Size of points is proportional to the coverage of each individual. Panel A reports the impact on estimation of $t_1$, while Panel B reports the impact on $t_2$. Note that Panel B has a broken x-axis. Solid lines in each figure indicate $y = x$.}
+   \label{sep_vs_pops}
+\end{figure}
+
+\section{Discussion}
+
+Ancient DNA (aDNA) presents unique opportunities to enhance our understanding of demography and selection in recent history. However, it also comes equipped with several challenges, due to postmortem DNA damage \citep{sawyer2012temporal}. Several strategies have been developed to deal with the low quality of aDNA data, from relatively simple options like sampling a read at random at every site \citep{green2010draft} to more complicated methods making use of genotype likelihoods \citep{racimo2016joint}. Here, we presented a novel maximum likelihood approach for making inferences about how ancient populations are related to modern populations by analyzing read counts from multiple ancient individuals and explicitly modeling relationship between the two populations. We explicitly condition on the allele frequency in a modern population; thus, our method is robust to ascertainment in modern samples and can be used with SNP capture data. Using this approach, we examined some aspects of sampling strategy for aDNA analysis and we applied our approach to ancient humans.
+
+We found that sequencing many individuals from an ancient population to low coverage (~.5-1x) can be a significantly more cost effective strategy than sequencing fewer individuals to relatively high coverage. For instance, we saw from simulations that far more accurate estimates of the drift time in an ancient population can be obtained by pooling 2 individuals at 0.5x coverage than by sequencing a single individual to 2x coverage (Figure \ref{RMSE}). We saw this replicated in our analysis of the real data: low coverage individuals showed a significant amount of variation and bias in estimating the model parameters that was substantially reduced when individuals were analyzed jointly in a population (Figure \ref{sep_vs_pops}). To explore this further, we showed that sites sequenced to 1x coverage in a single individual retain no information about the drift time in the ancient population. This can be intuitively understood because the drift time in the ancient population is strongly related the amount of heterozygosity in the ancient population: an ancient population with a longer drift time will have lower heterozygosity at sites shared with a modern population. When a site is only sequenced once in a single individual, there is no information about the heterozygosity of that site. We also observed a pronounced upward bias in estimates of the drift time in the ancient population from low coverage samples. We speculate that this is due to the presence of few sites covered more than once being likely to be homozygous, thus deflating the estimate of heterozygosity in the ancient population. Thus, for analysis of SNP data, we recommend that aDNA sampling be conduced to maximize the number of individuals from each ancient population that can be sequenced to $\sim$1x, rather than attempting to sequence fewer individuals to high coverage.
+
+When we looked at the impact of model misspecification, we saw several important patterns. First, the influence of admixture from the ancient population on inferences of $t_2$ is approximately linear, suggesting that if there are estimates of the amount of admixture between the modern and ancient population, a bias-corrected estimate of $t_2$ could be produced (Figure \ref{admixture}B). The impact on inference of $t_1$ is more complicated: admixture actually \emph{reduces} estimates of $t_1$ (Figure \ref{admixture}A). This is likely because admixture increases the heterozygosity in the modern population, thus causing the amount of drift time to seem reduced. In both cases, the bias is not impacted by details of sampling strategy, although the variance of estimates is highly in a way consistent with Figure \ref{RMSE}. 
+
+Of particular interest in many studies of ancient populations is the question of direct ancestry: are the ancient samples members of a population that contributed substantially to a modern population? We emphasize that this does not mean that the particular samples were direct ancestors of any modern individuals; indeed, this is exceedingly unlikely for old samples \citep{rohde2004modelling, chang1999recent, baird2003distribution, donnelly1983probability}. Instead, we are asking whether an ancient sample was a member of a population that is directly continuous with a modern population. Several methods have been proposed to test this question, but thus far they have been limited to many individuals sequenced at a single locus \citep{sjodin2014assessing} or to a single individual with genome-wide data \citep{rasmussen2014genome}. Our approach provides a rigorous, maximum likelihood framework for testing questions of population continuity using multiple low coverage ancient samples. We saw from simulations (Figure \ref{continuity}) that data from single, low coverage individuals result in very little power to reject the null hypothesis of continuity unless the ancient sample is very recent (i.e. it has been diverged from the modern population for a long time). Nonetheless, when low coverage individuals are pooled together, or a single high coverage individual is used, there is substantial power to reject continuity for all but the most ancient samples (i.e. samples dating from very near the population split time).
+
+Because many modern populations may have experienced admixture from unsampled ``ghost'' populations, we also performed simulations to test the impact of ghost admixture on the probability of falsely rejecting continuity. We find that single ancient samples do not provide sufficient power to reject continuity even for high levels of ghost admixture, while increasingly powerful sampling schemes, adding more individuals or higher coverage per individual, reject continuity at higher rates. However, in these situations, whether we regard rejection of continuity as a false or true discovery is somewhat subjective: how much admixture from an outside population is required before considering a population to not be directly ancestral? In future work it will be extremely important to estimate the ``maximum contribution'' of the population an ancient sample comes from (c.f \citet{sjodin2014assessing}). 
+
+To gain new insights from empirical data, we applied our approach to ancient samples throughout Europe. Notably, we rejected continuity for all populations that we analyzed. This is unsurprising, given that European history is extremely complicated and has been shaped by many periods of admixture \citep{lazaridis2014ancient, haak2015massive, lazaridis2016genomic}. Thus, modern Europeans have experienced many periods of ``ghost'' admixture (relative to any particular ancient sample). Nonetheless, our results show that none of these populations are even particularly close to directly ancestral, as our simulations have shown that rejection of continuity is robust to low levels of ghost admixture.
+
+Secondly, we observed that the drift time in the ancient population was much larger than the drift time in the modern population. Assuming that the ancient sample were a contemporary sample, the ratio $t_1/t_2$ is an estimator of the ratio $N_e^{(2)}/N_e^{(1)}$; in fact, because the ancient sample existed for fewer generations since the common ancestor of the ancient and modern populations, $t_1/t_2$ acts as an upper bound on $N_e^{(2)}/N_e^{(1)}$. Moreover, this is unlikely to be due to unmodeled error in the ancient samples: error would be expected increase the heterozygosity in the ancient sample, and thus \emph{decrease} our estimates of $t_2$. Thus, we find strong support for the observation that ancient Europeans were often members of small, isolated populations \citep{skoglund2014genomic}. We interpret these these two results together as suggestive that many ancient samples found thus far in Europe were members of small populations that ultimately went locally extinct. 
+
+We further examined the effective sizes of ancient populations through time by looking for a correlation between the age of the ancient populations and the drift time leading to them (Figure \ref{pops_together}C). We saw a strong positive correlation, and although this drift time is a compound parameter, which complicates interpretations, it appears that the oldest Europeans were members of the smallest populations, and that effective population size has grown through time as agriculture spread through Europe.
+
+We anticipate the further development of methods that explicitly account for differential drift times in ancient and modern samples will become important as aDNA research becomes even more integrating into population genomics. This is because many common summary methods, such as the use of Structure \citep{pritchard2000inference} and Admixture \citep{alexander2009fast}, are sensitive to differential amounts of drift between populations \citep{falush2016tutorial}. As we've shown in ancient Europeans, ancient samples tend to come from isolated subpopulations with a large amount of drift, thus confounding such summary approaches. Moreover, standard population genetics theory shows that allele frequencies are expected to be deterministically lower in ancient samples, even if they are direct ancestors of a modern population. Intuitively, this arises because the alleles must have arisen at some point from new mutations, and thus were at lower frequencies in the past. A potentially fruitful avenue to combine these approaches moving forward may be to separate regions of the genome based on ancestry components, and assess the ancestry of ancient samples relative to specific ancestry components, rather than to genomes as a whole.
+
+Our current approach leaves several avenues for improvement. We use a relatively simple error model that wraps up both post-mortem damage and sequencing error into a single parameter. While \citet{racimo2016joint} shows that adding an additional parameter for PMD-related error does not significantly change results, the recent work of \citet{kousathanas2017inferring} shows that building robust error models is challenging and essential to estimating heterozygosity properly. Although our method is robust to non-constant demography because we consider only alleles that are segregating in both the modern and the ancient population, we are losing information by not modeling new mutations that arise in the ancient population. Similarly, we only consider a single ancient population at a time, albeit with multiple samples. Ideally, ancient samples would be embedded in complex demographic models that include admixture, detailing their relationships to each other and to modern populations \citep{patterson2012ancient, lipson2017working}. However, inference of such complex models is difficult, and though there has been some progress in simplified cases \citep{lipson2014reconstructing, pickrell2012inference}, it remains an open problem due to the difficult of simultaneously inferring a non-tree-like topology along with demographic parameters. Software such as \texttt{momi} \citep{kamm2016efficient} that can compute the likelihood of SNP data in an admixture graph may be able to be used to integrate over genotype uncertainty in larger settings than considered here. 
+
+\section{Appendix}
+\subsection{Computing allele frequency moments in the ancient population}
+We wish to compute moments of the form
+\begin{equation}
+\mathbb{E}_x(g(Y); t_1, t_2) = \int_0^1 g(y) f(y; x, t_1, t_2)dy.
+\label{cond_exp}
+\end{equation}
+To do so, we make use of several results from diffusion theory. To ensure that this paper is self contained, we briefly review those results here. The interested reader may find much of this material covered in \citet{ewens2012mathematical, karlin1981second}. Several similar calculations can be found in \citet{griffiths2003frequency}.
+
+Let the probability of an allele going from frequency $x$ to frequency $y$ in $\tau$ generations in a population of size $N_e$ be $f(x,y; t)$, where $t = \tau/(2N_e)$. Under a wide variety of models, the change in allele frequencies through time is well approximated by the Wright-Fisher diffusion, which is characterized by its generator,
+\[
+\mathcal{L} = \frac{1}{2}x(1-x)\frac{d^2}{dx^2}.
+\]
+The generator of a diffusion process is useful, because it can be used to define a differential equation for the moments of that process,
+\begin{equation}
+\frac{d}{dt}\mathbb{E}_x(g(X_t)) = \mathbb{E}_x \left( \mathcal{L} g(X_t) \right).
+\label{expectation_ode}
+\end{equation}
+
+We will require the \emph{speed measure} of the Wright-Fisher diffusion, $m(x) = x^{-1}(1-x)^{-1}$, which essentially describes how slow a diffusion at position $x$ is ``moving'' compared to a Brownian motion at position $x$. Note that all diffusions are reversible with respect to their speed measures, i.e.
+\[
+m(x)f(x,y;t) = m(y)f(y,x;t).
+\]
+We additionally require the probability of loss, i.e. the probability that the allele currently at frequency $x$ is ultimately lost from the population. This is
+\[
+u_0(x) = 1-x.
+\]
+Note that it is possible to condition the Wright-Fisher diffusion to eventually be lost. The transition density can be computed as
+\[
+f^{\downarrow}(x,y;t) = f(x,y;t)\frac{u_0(y)}{u_0(x)}
+\]
+by using Bayes theorem. The diffusion conditioned on loss is characterized by its generator,
+\[
+\mathcal{L}^\downarrow = -x\frac{d}{dx} + \frac{1}{2}x(1-x)\frac{d^2}{dx^2}.
+\]
+
+In an infinite sites model, in which mutations occur at the times of a Poisson process with rate $\theta/2$ and then each drift according to the Wright-Fisher diffusion, a quasi-equilibrium distribution will be reached, known as the frequency spectrum. The frequency spectrum, $\phi(x)$, predicts the number of sites at frequency $x$, and can be written in terms of the speed measure and the probability of loss,
+\[
+\phi(x) = \theta m(x)u_0(x).
+\]
+
+To proceed with calculating \eqref{cond_exp}, note that the conditional probability of an allele being at frequency $y$ in the ancient population given that it's at frequency $x$ in the modern population can be calculated 
+\[
+f(y; x, t_1, t_2) = \frac{f(x, y; t_1, t_2)}{\phi(x)}
+\]
+where $f(x, y; t_1, t_2)$ is the joint probability of the allele frequencies in the modern and ancient populations and $\phi(x)$ is the frequency spectrum in the modern population.
+
+Assuming that the ancestral population of the modern and ancient samples was at equilibrium, the joint distribution of allele frequencies can be computed by sampling alleles from the frequency spectrum of the ancestor and evolving them forward in time via the Wright-Fisher diffusion. This can be written mathematically as
+\[
+f(x, y; t_1, t_2) = \int_0^1 f(z, x; t_1) f(z, y; t_2) \phi(z) dz.
+\]
+We now expand the frequency spectrum in terms of the speed measure and the probability of loss and use reversibility with respect to the speed measure to rewrite the equation,
+\begin{align*}
+\int_0^1 f(z, x; t_1) f(z, y; t_2) \phi(z) dz &= \theta \int_0^1 f(z, x; t_1)f(z, y; t_2)m(z)u_0(z)dz \\
+&= \theta \int_0^1 \frac{m(x)}{m(z)}f(x,z;t_1)f(z,y;t_2)m(z)u_0(z)dz \\
+&= \theta m(x) u_0(x) \int_0^1 f(x,z; t_1)\frac{u_0(z)}{u_0(x)} f(z,y;t_2) dz \\
+&= \phi(x) \int_0^1 f^{\downarrow}(x, z; t_1)f(z, y; t_2)dz.
+\end{align*}
+The third line follows by multiplying by $u_0(x)/u_0(x)  = 1$. This equation has the interpretation of sampling an allele from the frequency spectrum in the modern population, then evolving it \emph{backward} in time to the common ancestor, before evolving it \emph{forward} in time to the ancient population. The interpretation of the diffusion conditioned on loss as evolving backward in time arises by considering the fact that alleles arose from unique mutations at some point in the past; hence, looking backward, alleles must eventually be lost at some point in the past.
+
+To compute the expectation, we substitute this form for the joint probability into \eqref{cond_exp}, 
+\begin{align*}
+ \int_0^1 g(y) f(y; x, t_1, t_2)dy &= \int_0^1g(y)  \left( \int_0^1 f^{\downarrow}(x, z; t_1)f(z, y; t_2)dz \right) dy  \\
+ &= \int_0^1 \left( \int_0^1 g(y) f(z, y; t_2)dy \right) f^{\downarrow}(x, z; t_1) dz,
+\end{align*}
+where the second line follows by rearranging terms and exchanging the order of integration. Note that this formula takes the form of nested expectations. Specifically,
+\begin{align*}
+\int_0^1 g(y) f(z, y; t_2) dy &= \mathbb{E}_z(g(Y_{t_2})) \\
+&\equiv h(z)
+\end{align*}
+and
+\begin{align*}
+\int_0^1 h(z) f^\downarrow(x, z; t_1)dz &= \mathbb{E}_x^\downarrow(h(Z_{t_1})) \\
+&= \mathbb{E}_x(g(Y); t_1, t_2).
+\end{align*}
+
+We now use \eqref{expectation_ode} to note that
+\[
+\frac{d}{dt}p_{n,k} = \frac{k(k-1)}{2}p_{n,k-1} - k(n-k)p_{n,k} + \frac{(n-k)(n-k-1)}{2}p_{n,k+1}
+\]
+and
+\[
+\frac{d}{dt}p^\downarrow_{n,k} = \frac{k(k-1)}{2}p^\downarrow_{n,k-1} - k(n-k+1)p^\downarrow_{n,k} + \frac{(n-k+1)(n-k)}{2}p^\downarrow_{n,k+1}
+\]
+with obvious boundary conditions $p_{n,k}(0; z) = z^k(1-z)^{n-k}$ and $p_{n,k}^\downarrow(0; x) = x^k(1-x)^{n-k}$.
+
+These systems of differential equations can be rewritten as matrix differential equations with coefficient matrices $Q$ and $Q^\downarrow$ respectively. Because they are linear, first order equations, they can be solved by matrix exponentiation. Because the expectation of a polynomial in the Wright-Fisher diffusion remains a polynomial, the nested expectations can be computed via matrix multiplication of the solutions to these differential equations, yielding the formula \eqref{expectation_matrices}.
+
+\subsection{Robustness to ascertainment in the modern population}
+By conditioning on the allele frequency in the modern population, we gain the power to make inferences that are robust to ascertainment in the modern population. To see this, note from Equation 3 in \citet{nielsen2003correcting} that 
+\[
+f(x | A) = \frac{f(x, A)}{f(A)}
+\]
+where $A$ indicates the event that the allele was ascertained in the modern population. A simple generalization of this shows that
+\[
+f(x,y|A) = \frac{f(x,y,A)}{f(A)}.
+\]
+So,
+\begin{align*}
+f(y | x, A) &= \frac{f(x, y | A)}{f(x | A)} \\
+&= \frac{f(x,y,A)}{f(x,A)} \\
+&= \frac{f(A | x, y)f(x,y)}{f(A | x)f(x)} \\
+&= \frac{f(x,y)}{f(x)}
+\end{align*}
+where the final line follows by recognizing that $f(A | x, y) = f(A | x)$ since the allele was ascertained in the modern population. Thus, we see that the ascertainment is removed by conditioning and we recover the original formula. Note that the robustness to ascertainment is only exact if the allele is ascertained in the modern population, but is expected to be very close to to true so long as the allele is ascertained in a population closer to the modern population than to the ancient population.
+
+\subsection{Sites covered exactly once have no information about drift in the ancient population}
+Consider a simplified model in which each site has exactly one read. When we have sequence from only a single individual, we have a set $l_a$ of sites where the single read is an ancestral allele and a set $l_d$ of sites where the single read is a derived allele. Thus, we can rewrite \eqref{likelihood} as
+\[
+L(D) = \prod_{l \in l_a} \left( (1-\epsilon)P_{2,0}(x_l) + \frac{1}{2}P_{2,1}(x_l) + \epsilon P_{2,2}(x_l)  \right) \prod_{l \in l_d} \left( \epsilon P_{2,0}(x_l) + \frac{1}{2}P_{2,1}(x_l) + (1-\epsilon)P_{2,2}(x_l) \right).
+\]
+We can use formulas from \citet{racimo2016joint} to compute $P_{2,k}(x_l)$ for $k \in \{0,1,2\}$,
+\begin{align*}
+P_{2,0}(x_l) &= 1- x_l e^{-t_1} - \frac{1}{2} x_l e^{-(t_1+t_2)} + x_l\left(x_l - \frac{1}{2}\right)e^{-(3t_1+t_2)} \\
+P_{2,1}(x_l) &= x_l e^{-(t_1+t_2)} + x_l(1-2x_l)e^{-(3t_1+t_2)} \\
+P_{2,2}(x_l) &= x_l e^{-t_1} - \frac{1}{2} x_l e^{-(t_1+t_2)} + x_l\left(x_l-\frac{1}{2}\right)e^{-(3t_1-t_2)}.
+\end{align*}
+Note then that
+\[
+ (1-\epsilon)P_{2,0}(x_l) + \frac{1}{2}P_{2,1}(x_l) + \epsilon P_{2,2}(x_l)  = 1 - \epsilon - x (1-2\epsilon) e^{-t_1}
+\]
+and
+\[
+\epsilon P_{2,0}(x_l) + \frac{1}{2}P_{2,1}(x_l) + (1-\epsilon)P_{2,2}(x_l)  = \epsilon + x (1-2\epsilon) e^{-t_1}.
+\]
+Neither of these formulas depend on $t_2$; hence, there is no information about the drift time in the ancient population from data that is exactly 1x coverage. 
+
+\section{Software Availability}
+Python implementations of the described methods are available at \texttt{www.github.com/schraiber/continuity/}
+
+\section{Acknowledgments}
+We wish to thank Melinda Yang, Iain Mathieson, Pontus Skoglund, and Fernando Racimo for several discussions during the conception of this work that greatly improved its scope and rigor. We are grateful to Fernando Racimo and Benjamin Vernot for comments on early versions of this work that significantly improved its quality. We also appreciate comments on the preprint from Alex Kim and Aylwyn Scally. We would also like to thank Tamara Broderick for several stimulating discussions about clustering that ultimately didn't result in any interesting application to ancient DNA. 
+
+ \bibliographystyle{plainnat}
+ \bibliography{ancient_bibliography}
+
+\end{document}  

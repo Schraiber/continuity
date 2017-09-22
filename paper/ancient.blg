@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99d (TeX Live 2014)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: ancient.aux
+The style file: plainnat.bst
+Database file #1: ancient_bibliography.bib
+Warning--there's a number but no volume in kamm2016efficient
+You've used 41 entries,
+            2773 wiz_defined-function locations,
+            843 strings with 13924 characters,
+and the built_in function-call counts, 25176 in all, are:
+= -- 2096
+> -- 2089
+< -- 15
++ -- 704
+- -- 663
+* -- 2367
+:= -- 3993
+add.period$ -- 123
+call.type$ -- 41
+change.case$ -- 331
+chr.to.int$ -- 41
+cite$ -- 83
+duplicate$ -- 901
+empty$ -- 1629
+format.name$ -- 712
+if$ -- 5098
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 43
+newline$ -- 213
+num.names$ -- 164
+pop$ -- 614
+preamble$ -- 1
+purify$ -- 292
+quote$ -- 0
+skip$ -- 788
+stack$ -- 0
+substring$ -- 910
+swap$ -- 94
+text.length$ -- 5
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 441
+warning$ -- 1
+while$ -- 184
+width$ -- 0
+write$ -- 538
+(There was 1 warning)
