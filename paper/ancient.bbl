@@ -1,4 +1,4 @@
-\begin{thebibliography}{37}
+\begin{thebibliography}{41}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -102,6 +102,14 @@ Ethan~M Jewett, Matthias Steinr{\"u}cken, and Yun~S Song.
   coefficients from time-series genetic data.
 \newblock \emph{Molecular Biology and Evolution}, page msw173, 2016.
 
+\bibitem[J{\'o}nsson et~al.(2013)J{\'o}nsson, Ginolhac, Schubert, Johnson, and
+  Orlando]{jonsson2013mapdamage2}
+H{\'a}kon J{\'o}nsson, Aur{\'e}lien Ginolhac, Mikkel Schubert, Philip~LF
+  Johnson, and Ludovic Orlando.
+\newblock mapdamage2. 0: fast approximate bayesian estimates of ancient dna
+  damage parameters.
+\newblock \emph{Bioinformatics}, 29\penalty0 (13):\penalty0 1682--1684, 2013.
+
 \bibitem[Kamm et~al.(2016)Kamm, Terhorst, and Song]{kamm2016efficient}
 John~A Kamm, Jonathan Terhorst, and Yun~S Song.
 \newblock Efficient computation of the joint sample frequency spectra for
@@ -126,6 +134,13 @@ Jerome Kelleher, Alison~M Etheridge, and Gilean McVean.
 Thorfinn~Sand Korneliussen, Anders Albrechtsen, and Rasmus Nielsen.
 \newblock Angsd: analysis of next generation sequencing data.
 \newblock \emph{BMC bioinformatics}, 15\penalty0 (1):\penalty0 356, 2014.
+
+\bibitem[Kousathanas et~al.(2017)Kousathanas, Leuenberger, Link, Sell, Burger,
+  and Wegmann]{kousathanas2017inferring}
+Athanasios Kousathanas, Christoph Leuenberger, Vivian Link, Christian Sell,
+  Joachim Burger, and Daniel Wegmann.
+\newblock Inferring heterozygosity from ancient and low coverage genomes.
+\newblock \emph{Genetics}, 205\penalty0 (1):\penalty0 317--332, 2017.
 
 \bibitem[Lazaridis et~al.(2014)Lazaridis, Patterson, Mittnik, Renaud, Mallick,
   Kirsanow, Sudmant, Schraiber, Castellano, Lipson,
@@ -175,6 +190,13 @@ Matthias Meyer, Martin Kircher, Marie-Theres Gansauge, Heng Li, Fernando
   De~Filippo, et~al.
 \newblock A high-coverage genome sequence from an archaic denisovan individual.
 \newblock \emph{Science}, 338\penalty0 (6104):\penalty0 222--226, 2012.
+
+\bibitem[Nielsen and Signorovitch(2003)]{nielsen2003correcting}
+Rasmus Nielsen and James Signorovitch.
+\newblock Correcting for ascertainment biases when analyzing snp data:
+  applications to the estimation of linkage disequilibrium.
+\newblock \emph{Theoretical population biology}, 63\penalty0 (3):\penalty0
+  245--255, 2003.
 
 \bibitem[Nielsen et~al.(2012)Nielsen, Korneliussen, Albrechtsen, Li, and
   Wang]{nielsen2012snp}
@@ -259,6 +281,16 @@ Joshua~G Schraiber, Steven~N Evans, and Montgomery Slatkin.
 Per Sj{\"o}din, Pontus Skoglund, and Mattias Jakobsson.
 \newblock Assessing the maximum contribution from ancient populations.
 \newblock \emph{Molecular biology and evolution}, page msu059, 2014.
+
+\bibitem[Skoglund et~al.(2012)Skoglund, Malmstr{\"o}m, Raghavan, Stor{\aa},
+  Hall, Willerslev, Gilbert, G{\"o}therstr{\"o}m, and
+  Jakobsson]{skoglund2012origins}
+Pontus Skoglund, Helena Malmstr{\"o}m, Maanasa Raghavan, Jan Stor{\aa}, Per
+  Hall, Eske Willerslev, M~Thomas~P Gilbert, Anders G{\"o}therstr{\"o}m, and
+  Mattias Jakobsson.
+\newblock Origins and genetic legacy of neolithic farmers and hunter-gatherers
+  in europe.
+\newblock \emph{Science}, 336\penalty0 (6080):\penalty0 466--469, 2012.
 
 \bibitem[Skoglund et~al.(2014)Skoglund, Malmstr{\"o}m, Omrak, Raghavan,
   Valdiosera, G{\"u}nther, Hall, Tambets, Parik, Sj{\"o}gren,
