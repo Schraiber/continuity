@@ -2,7 +2,7 @@ import msprime as msp
 import scipy.stats as st
 import numpy as np
 
-def ancient_sample_mix_multiple(num_modern=1000,anc_pop = 0, anc_num = 1, anc_time=200,mix_time=300,split_time=400,f=0.0,Ne0=10000,Ne1=10000,mu=1.25e-8,length=1000,num_rep=1000, error = None, coverage=False, seed = None):
+def ancient_sample_mix_multiple(num_modern=1000,anc_pop = 0, anc_num = 1, anc_time=200,mix_time=300,split_time=400,f=0.0,Ne0=10000,Ne1=10000,mu=1.25e-8,length=1000,num_rep=1000, error = None, contamination = None, coverage=False, seed = None):
 	if mix_time > split_time:
 		print "mixture occurs more anciently than population split!"
 		return None
@@ -11,6 +11,14 @@ def ancient_sample_mix_multiple(num_modern=1000,anc_pop = 0, anc_num = 1, anc_ti
 		return None
 	if error is None:
 		error = np.zeros(anc_num)
+	if contamination is None:
+		contamination = np.zeros(anc_num)
+	if len(error) != anc_num: 
+		print "Incorrect number of error parameters"
+		return None
+	if len(contamination) != anc_num:
+		print "Incorrect number of contamination parameters"
+		return None
 	samples = [msp.Sample(population=0,time=0)]*num_modern
 	samples.extend([msp.Sample(population=anc_pop,time=anc_time)]*(2*anc_num))
 	pop_config = [msp.PopulationConfiguration(initial_size=Ne0),msp.PopulationConfiguration(initial_size=Ne1)]
@@ -37,7 +45,8 @@ def ancient_sample_mix_multiple(num_modern=1000,anc_pop = 0, anc_num = 1, anc_ti
 				reads[-1].append([None,None])
 				if coverage:
 					num_reads = st.poisson.rvs(coverage)
-					p_der = cur_GT/2.*(1-error[i])+(1-cur_GT/2.)*error[i]
+					p_der = (1-contamination[i])*(cur_GT/2.*(1-error[i])+(1-cur_GT/2.)*error[i])
+					p_der += contamination[i]*(cur_freq*(1-error[i])+(1-cur_freq)*error[i])
 					derived_reads = st.binom.rvs(num_reads, p_der)
 					reads[-1][-1] = (num_reads-derived_reads,derived_reads)
 	return np.array(freq), GT, reads
