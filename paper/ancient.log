@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  18 SEP 2017 10:49
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  27 OCT 2017 15:00
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -322,71 +322,71 @@ n/10 ^^@ \OML/cmm/m/it/10 x\OT1/cmr/m/n/10 )[]\OML/cmm/m/it/10 ; x\OT1/cmr/m/n/
 [5]
 \openout3 = `ancient.fff'.
 
- (ancient.fff) [6] [7] [8] [9]
+ (ancient.fff) [6] [7] [8] [9] [10]
 \openout4 = `ancient.ttt'.
 
- (ancient.ttt) [10] [11] [12] [13] [14]
-[15] [16] [17] [18] [19] [20]
+ (ancient.ttt) [11] [12] [13] [14]
+[15] [16] [17] [18] [19] [20] [21]
 Overfull \hbox (62.55733pt too wide) detected at line 346
 \OML/cmm/m/it/10 L\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 D\OT1/cmr/m/n/10 ) = [] [] 
 [] [] \OML/cmm/m/it/10 :
  []
 
-[21]
+[22]
 Overfull \hbox (97.71663pt too wide) in paragraph at lines 364--365
 \OT1/cmr/m/n/10 Python im-ple-men-ta-tions of the de-scribed meth-ods are avail
 -able at \OT1/cmtt/m/n/10 www.github.com/schraiber/continuity/ 
  []
 
-(./ancient.bbl [22] [23] [24] [25] [26])
-AED endfloat: Processing end Figures and Tables [27] (./ancient.fff
-<backward_forward_v2.pdf, id=106, 277.50876pt x 169.85858pt>
+(./ancient.bbl [23] [24] [25] [26] [27])
+AED endfloat: Processing end Figures and Tables [28] (./ancient.fff
+<backward_forward_v2.pdf, id=109, 277.50876pt x 169.85858pt>
 File: backward_forward_v2.pdf Graphic file (type pdf)
 
 <use backward_forward_v2.pdf>
 Package pdftex.def Info: backward_forward_v2.pdf used on input line 3.
 (pdftex.def)             Requested size: 387.00153pt x 236.88286pt.
- [28
+ [29
 
 
  <./backward_forward_v2.pdf>]
-<RMSE_Figure.pdf, id=220, 506.10179pt x 192.47307pt>
+<RMSE_Figure.pdf, id=223, 506.10179pt x 192.47307pt>
 File: RMSE_Figure.pdf Graphic file (type pdf)
  <use RMSE_Figure.pdf>
 Package pdftex.def Info: RMSE_Figure.pdf used on input line 11.
 (pdftex.def)             Requested size: 430.00462pt x 163.5324pt.
 
-[29
+[30
 
  <./RMSE_Figure.pdf>]
-<continuity_rejection.pdf, id=272, 578.16pt x 433.62pt>
+<continuity_rejection.pdf, id=275, 578.16pt x 433.62pt>
 File: continuity_rejection.pdf Graphic file (type pdf)
 
 <use continuity_rejection.pdf>
 Package pdftex.def Info: continuity_rejection.pdf used on input line 19.
 (pdftex.def)             Requested size: 430.00462pt x 322.50143pt.
- [30
+ [31
 
  <./continuity_rejection.pdf>]
-<t1_t2_admixture.pdf, id=287, 514.99702pt x 216.41252pt>
+<t1_t2_admixture.pdf, id=291, 514.99702pt x 216.41252pt>
 File: t1_t2_admixture.pdf Graphic file (type pdf)
 
 <use t1_t2_admixture.pdf>
 Package pdftex.def Info: t1_t2_admixture.pdf used on input line 27.
 (pdftex.def)             Requested size: 430.00462pt x 180.70544pt.
- [31
+ [32
 
  <./t1_t2_admixture.pdf>]
-<continuity_rejection_ghost.pdf, id=337, 796.77673pt x 590.80722pt>
+<continuity_rejection_ghost.pdf, id=340, 796.77673pt x 590.80722pt>
 File: continuity_rejection_ghost.pdf Graphic file (type pdf)
 
 <use continuity_rejection_ghost.pdf>
 Package pdftex.def Info: continuity_rejection_ghost.pdf used on input line 35.
 (pdftex.def)             Requested size: 430.00462pt x 318.85085pt.
- [32
+ [33
 
  <./continuity_rejection_ghost.pdf>]
-<parameters_and_age.pdf, id=361, 542.76881pt x 634.33685pt>
+<parameters_and_age.pdf, id=364, 542.76881pt x 634.33685pt>
 File: parameters_and_age.pdf Graphic file (type pdf)
 
 <use parameters_and_age.pdf>
@@ -399,14 +399,14 @@ LaTeX Warning: Float too large for page by 39.81546pt on input line 46.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[33 <./parameters_and_age.pdf>]
-<sep_vs_pops.pdf, id=413, 1099.40742pt x 542.9284pt>
+[34 <./parameters_and_age.pdf>]
+<sep_vs_pops.pdf, id=416, 1099.40742pt x 542.9284pt>
 File: sep_vs_pops.pdf Graphic file (type pdf)
  <use sep_vs_pops.pdf>
 Package pdftex.def Info: sep_vs_pops.pdf used on input line 51.
 (pdftex.def)             Requested size: 430.00462pt x 212.35426pt.
 
-[34
+[35
 
 
  <./sep_vs_pops.pdf>]) (./ancient.ttt
@@ -414,7 +414,7 @@ Overfull \hbox (75.64052pt too wide) in paragraph at lines 3--33
  [][] 
  []
 
-[35
+[36
 
 
 ]) (./ancient.aux) ) 
@@ -425,7 +425,7 @@ Here is how much of TeX's memory you used:
  7195 multiletter control sequences out of 15000+600000
  15759 words of font info for 60 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 38i,9n,26p,1891b,308s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 38i,9n,26p,2357b,308s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsf
 onts/cm/cmbx10.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfo
 nts/cm/cmbx12.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfon
@@ -446,10 +446,10 @@ l/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/
 texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/t
 exlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/te
 xlive/2014/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on ancient.pdf (35 pages, 4522881 bytes).
+Output written on ancient.pdf (36 pages, 4525045 bytes).
 PDF statistics:
- 521 PDF objects out of 1000 (max. 8388607)
- 233 compressed objects within 3 object streams
+ 524 PDF objects out of 1000 (max. 8388607)
+ 235 compressed objects within 3 object streams
  0 named destinations out of 1000 (max. 500000)
  36 words of extra memory for PDF output out of 10000 (max. 10000000)
 

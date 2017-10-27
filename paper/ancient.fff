@@ -25,7 +25,7 @@
 \begin{figure}[h] %  figure placement: here, top, bottom, or page
    \centering
    \includegraphics[width=\textwidth]{t1_t2_admixture.pdf}
-   \caption{Impact of admixture from the ancient population on inferred parameters. The $x$ axis shows the admixture proportion and the $y$ axis shows the average parameter estimate across simulations. Each line corresponds to a different sampling strategy, as indicated in the legend. Panel A shows results for $t_1$ and Panel B shows results for $t_2$.}
+   \caption{Impact of admixture from the ancient population on inferred parameters. The $x$ axis shows the admixture proportion and the $y$ axis shows the average parameter estimate across simulations. Each line corresponds to a different sampling strategy, as indicated in the legend. Panel A shows results for $t_1$ and Panel B shows results for $t_2$. The true values of $t_1 = 0.02$ and $t_2 = 0.05$ are indicated by dashed lines.}
    \label{admixture}
 \end{figure}
 \efloatseparator
@@ -33,7 +33,7 @@
 \begin{figure}[h] %  figure placement: here, top, bottom, or page
    \centering
    \includegraphics[width=\textwidth]{continuity_rejection_ghost.pdf}
-   \caption{Impact of ghost admixture on falsely rejecting continuity. The $x$ axis shows the admixture proportion from the ghost population, and the $y$ axis shows the fraction of simulations in which continuity was rejected. Each line corresponds to a different sampling strategy, as indicated in the legend.}
+   \caption{Impact of ghost admixture on rejecting continuity. The $x$ axis shows the admixture proportion from the ghost population, and the $y$ axis shows the fraction of simulations in which continuity was rejected. Each line corresponds to a different sampling strategy, as indicated in the legend.}
    \label{ghost}
 \end{figure}
 \efloatseparator

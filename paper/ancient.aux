@@ -28,17 +28,18 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Impact of admixture}{9}}
 \citation{mathieson2015genome}
 \citation{10002015global}
-\citation{skoglund2014genomic}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Application to ancient humans}{10}}
+\citation{skoglund2014genomic}
 \citation{sawyer2012temporal}
 \citation{green2010draft}
 \citation{racimo2016joint}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Discussion}{11}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Discussion}{12}}
 \citation{rohde2004modelling,chang1999recent,baird2003distribution,donnelly1983probability}
 \citation{sjodin2014assessing}
 \citation{rasmussen2014genome}
 \citation{sjodin2014assessing}
 \citation{lazaridis2014ancient,haak2015massive,lazaridis2016genomic}
+\citation{lazaridis2014ancient,haak2015massive}
 \citation{skoglund2014genomic}
 \citation{pritchard2000inference}
 \citation{alexander2009fast}
@@ -50,18 +51,18 @@
 \citation{kamm2016efficient}
 \citation{ewens2012mathematical,karlin1981second}
 \citation{griffiths2003frequency}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Appendix}{16}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Computing allele frequency moments in the ancient population}{16}}
-\newlabel{cond_exp}{{4}{16}}
-\newlabel{expectation_ode}{{5}{17}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Appendix}{17}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Computing allele frequency moments in the ancient population}{17}}
+\newlabel{cond_exp}{{4}{17}}
+\newlabel{expectation_ode}{{5}{18}}
 \citation{nielsen2003correcting}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Robustness to ascertainment in the modern population}{20}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Robustness to ascertainment in the modern population}{21}}
 \citation{racimo2016joint}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Sites covered exactly once have no information about drift in the ancient population}{21}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Sites covered exactly once have no information about drift in the ancient population}{22}}
 \bibstyle{plainnat}
 \bibdata{ancient_bibliography}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Software Availability}{22}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Acknowledgments}{22}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Software Availability}{23}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Acknowledgments}{23}}
 \bibcite{alexander2009fast}{{1}{2009}{{Alexander et~al.}}{{Alexander, Novembre, and Lange}}}
 \bibcite{allentoft2015population}{{2}{2015}{{Allentoft et~al.}}{{Allentoft, Sikora, Sj{\"o}gren, Rasmussen, Rasmussen, Stenderup, Damgaard, Schroeder, Ahlstr{\"o}m, Vinner, et~al.}}}
 \bibcite{baird2003distribution}{{3}{2003}{{Baird et~al.}}{{Baird, Barton, and Etheridge}}}
@@ -103,19 +104,19 @@
 \bibcite{sjodin2014assessing}{{39}{2014}{{Sj{\"o}din et~al.}}{{Sj{\"o}din, Skoglund, and Jakobsson}}}
 \bibcite{skoglund2012origins}{{40}{2012}{{Skoglund et~al.}}{{Skoglund, Malmstr{\"o}m, Raghavan, Stor{\r a}, Hall, Willerslev, Gilbert, G{\"o}therstr{\"o}m, and Jakobsson}}}
 \bibcite{skoglund2014genomic}{{41}{2014}{{Skoglund et~al.}}{{Skoglund, Malmstr{\"o}m, Omrak, Raghavan, Valdiosera, G{\"u}nther, Hall, Tambets, Parik, Sj{\"o}gren, et~al.}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces The generative model. Alleles are found at frequency $x$ in the modern population and are at frequency $y$ in the ancient population. The modern population has effective size $N_e^{(1)}$ and has evolved for $\tau _1$ generations since the common ancestor of the modern and ancient populations, while the ancient population is of size $N_e^{(2)}$ and has evolved for $\tau _2$ generations. Ancient diploid samples are taken and sequenced to possibly low coverage, with errors. Arrows indicate that the sampling probability can be calculated by evolving alleles \emph  {backward} in time from the modern population and then forward in time to the ancient population.}}{28}}
-\newlabel{generative_model}{{1}{28}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Impact of sampling scheme on parameter estimation error. In each panel, the $x$ axis represents the number of simulated ancient samples, while the $y$ axis shows the relative root mean square error for each parameter. Each different line corresponds to individuals sequenced to different depth of coverage. Panel A shows results for $t_1$ while panel B shows results for $t_2$. Simulated parameters are $t_1 = 0.02$ and $t_2 = 0.05$.}}{29}}
-\newlabel{RMSE}{{2}{29}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Impact of sampling scheme on rejecting population continuity. The $x$ axis represents the age of the ancient sample in generations, with 0 indicating a modern sample and 400 indicating a sample from exactly at the split time 400 generations ago. The $y$ axis shows the proportion of simulations in which we rejected the null hypothesis of population continuity. Each line shows different sampling schemes, as explained in the legend.}}{30}}
-\newlabel{continuity}{{3}{30}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Impact of admixture from the ancient population on inferred parameters. The $x$ axis shows the admixture proportion and the $y$ axis shows the average parameter estimate across simulations. Each line corresponds to a different sampling strategy, as indicated in the legend. Panel A shows results for $t_1$ and Panel B shows results for $t_2$.}}{31}}
-\newlabel{admixture}{{4}{31}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Impact of ghost admixture on falsely rejecting continuity. The $x$ axis shows the admixture proportion from the ghost population, and the $y$ axis shows the fraction of simulations in which continuity was rejected. Each line corresponds to a different sampling strategy, as indicated in the legend.}}{32}}
-\newlabel{ghost}{{5}{32}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Parameters of the model inferred from ancient West Eurasian samples. Panel A shows $t_1$ on the x-axis and $t_2$ on the y-axis, with each point corresponding to a population as indicated in the legend. Numbers in the legend correspond to the mean date of all samples in the population. Panels B and C show scatterplots of the mean age of the samples in the population (x-axis) against $t_1$ and $t_2$, respectively. Points are described by the same legend as Panel A.}}{33}}
-\newlabel{pops_together}{{6}{33}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Impact of pooling individuals into populations when estimating model parameters from real data. In both panels, the x-axis indicates the parameter estimate when individuals are analyzed separately, while the y-axis indicates the parameter estimate when individuals are grouped into populations. Size of points is proportional to the coverage of each individual. Panel A reports the impact on estimation of $t_1$, while Panel B reports the impact on $t_2$. Note that Panel B has a broken x-axis. Solid lines in each figure indicate $y = x$.}}{34}}
-\newlabel{sep_vs_pops}{{7}{34}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Details of populations included in analysis. ``pop'' is population name, ``cov'' is mean coverage of individuals in the population, ``date'' is mean date of individuals in the population, ``$t_1$'' is the maximum likelihood estimate of $t_1$ in the full model, ``$t_2$'' is the maximum likelihood estimate of $t_2$ in the full model, ``LnL'' is the maximum likelihood value in the full model, ``$t_1$ (cont)'' is the maximum likelihood estimate of $t_1$ in the model where $t_2 = 0$, ``LnL'' is the maximum likelihood value in the model where $t_2 = 0$.}}{35}}
-\newlabel{params_table}{{1}{35}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces The generative model. Alleles are found at frequency $x$ in the modern population and are at frequency $y$ in the ancient population. The modern population has effective size $N_e^{(1)}$ and has evolved for $\tau _1$ generations since the common ancestor of the modern and ancient populations, while the ancient population is of size $N_e^{(2)}$ and has evolved for $\tau _2$ generations. Ancient diploid samples are taken and sequenced to possibly low coverage, with errors. Arrows indicate that the sampling probability can be calculated by evolving alleles \emph  {backward} in time from the modern population and then forward in time to the ancient population.}}{29}}
+\newlabel{generative_model}{{1}{29}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Impact of sampling scheme on parameter estimation error. In each panel, the $x$ axis represents the number of simulated ancient samples, while the $y$ axis shows the relative root mean square error for each parameter. Each different line corresponds to individuals sequenced to different depth of coverage. Panel A shows results for $t_1$ while panel B shows results for $t_2$. Simulated parameters are $t_1 = 0.02$ and $t_2 = 0.05$.}}{30}}
+\newlabel{RMSE}{{2}{30}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Impact of sampling scheme on rejecting population continuity. The $x$ axis represents the age of the ancient sample in generations, with 0 indicating a modern sample and 400 indicating a sample from exactly at the split time 400 generations ago. The $y$ axis shows the proportion of simulations in which we rejected the null hypothesis of population continuity. Each line shows different sampling schemes, as explained in the legend.}}{31}}
+\newlabel{continuity}{{3}{31}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Impact of admixture from the ancient population on inferred parameters. The $x$ axis shows the admixture proportion and the $y$ axis shows the average parameter estimate across simulations. Each line corresponds to a different sampling strategy, as indicated in the legend. Panel A shows results for $t_1$ and Panel B shows results for $t_2$. The true values of $t_1 = 0.02$ and $t_2 = 0.05$ are indicated by dashed lines.}}{32}}
+\newlabel{admixture}{{4}{32}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Impact of ghost admixture on rejecting continuity. The $x$ axis shows the admixture proportion from the ghost population, and the $y$ axis shows the fraction of simulations in which continuity was rejected. Each line corresponds to a different sampling strategy, as indicated in the legend.}}{33}}
+\newlabel{ghost}{{5}{33}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Parameters of the model inferred from ancient West Eurasian samples. Panel A shows $t_1$ on the x-axis and $t_2$ on the y-axis, with each point corresponding to a population as indicated in the legend. Numbers in the legend correspond to the mean date of all samples in the population. Panels B and C show scatterplots of the mean age of the samples in the population (x-axis) against $t_1$ and $t_2$, respectively. Points are described by the same legend as Panel A.}}{34}}
+\newlabel{pops_together}{{6}{34}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Impact of pooling individuals into populations when estimating model parameters from real data. In both panels, the x-axis indicates the parameter estimate when individuals are analyzed separately, while the y-axis indicates the parameter estimate when individuals are grouped into populations. Size of points is proportional to the coverage of each individual. Panel A reports the impact on estimation of $t_1$, while Panel B reports the impact on $t_2$. Note that Panel B has a broken x-axis. Solid lines in each figure indicate $y = x$.}}{35}}
+\newlabel{sep_vs_pops}{{7}{35}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Details of populations included in analysis. ``pop'' is population name, ``cov'' is mean coverage of individuals in the population, ``date'' is mean date of individuals in the population, ``$t_1$'' is the maximum likelihood estimate of $t_1$ in the full model, ``$t_2$'' is the maximum likelihood estimate of $t_2$ in the full model, ``LnL'' is the maximum likelihood value in the full model, ``$t_1$ (cont)'' is the maximum likelihood estimate of $t_1$ in the model where $t_2 = 0$, ``LnL'' is the maximum likelihood value in the model where $t_2 = 0$.}}{36}}
+\newlabel{params_table}{{1}{36}}
