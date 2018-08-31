@@ -127,8 +127,8 @@ For example, continuing with the variables above
 
 ```
 import scipy.stats
-opts_cont_false = optimize_pop_params_error_parallel(freqs,read_lists,pops,continuity=False)
-opts_cont_true = optimize_pop_params_error_parallel(freqs,read_lists,pops,continuity=True)
+opts_cont_false = optimize_pop_params_error_parallel(freqs,read_lists,1,continuity=False) #will only use one core; you can change the 1 to however many cores you want to use
+opts_cont_true = optimize_pop_params_error_parallel(freqs,read_lists,1,continuity=True)
 likelihood_false = np.array([-x[1] for x in opts_cont_false]) #minus sign is because scipy.optimize minimizes the negative log likelihood
 likelihood_true = np.array([-x[1] for x in opts_cont_true])
 LRT = 2*(likelihood_false - likelihood_true)
