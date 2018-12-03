@@ -32,7 +32,6 @@ header = '\t'.join(header_list)
 sys.stdout.write("%s\n"%header)
 
 #open VCF 
-#TODO: Need to open a whole path of VCFs
 vcfs = glob.glob("%s/*.vcf.gz"%args.v)
 vcf_files = [None]*len(vcfs)
 for vcf in vcfs:
@@ -83,14 +82,14 @@ for i, SNP in enumerate(SNPs):
 		else:
 			der = alt
 		sys.stdout.write("%s\t%d\t%f"%(chrom,pos,freq))
-		for i,bam in enumerate(bam_files):
+		for j,bam in enumerate(bam_files):
 			sys.stdout.write("\t")
 			der_count, anc_count, other_count = 0, 0, 0
 			try:
 				pileup = bam.pileup(str(chrom), pos-1, pos)
 			except ValueError:
 				sys.stdout.write("%d\t%d\t%d"%(der_count,anc_count,other_count))
-				break	
+				continue	
 			for pileupcolumn in pileup: 
 				if pileupcolumn.pos != pos: continue
 				for pileupread in pileupcolumn.pileups:
